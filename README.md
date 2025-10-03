@@ -82,7 +82,7 @@
 apt instalar git curl -y
 
 # Repositório clone
-clone do git https://github.com/alijayanet/gembok-bill
+git clone https://github.com/luizmeloDev/geniesoft.git)
 cd cadeado-bill
 ```
 
