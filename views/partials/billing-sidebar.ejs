@@ -5,8 +5,8 @@
             <button class="btn btn-link text-white p-0 me-3" type="button" id="sidebarToggle">
                 <i class="bx bx-menu" style="font-size: 1.5rem;"></i>
             </button>
-            <img src="/img/GEMBOK-Bill.png?ts=<%= Date.now() %>" alt="GEMBOK Bill Logo" style="height: 35px; border-radius: 4px;">
-            <span class="navbar-brand ms-2 mb-0">Billing Admin</span>
+            <img src="/img/logo.png?ts=<%= Date.now() %>" alt="Geniesoft Logo" style="height: 35px; border-radius: 4px;">
+            <span class="navbar-brand ms-2 mb-0">Admin Faturamento</span>
         </div>
     </div>
 </nav>
@@ -26,13 +26,13 @@
         
         <!-- Logo Section -->
         <div class="sidebar-header mb-4 text-center">
-            <img src="/img/GEMBOK-Bill.png?ts=<%= Date.now() %>" alt="GEMBOK Bill Logo" style="max-width:120px;max-height:60px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <img src="/img/logo.png?ts=<%= Date.now() %>" alt="Geniesoft Logo" style="max-width:120px;max-height:60px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         </div>
         
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link text-white" href="/admin">
-                    <i class="bx bx-home"></i> Dashboard Utama
+                <a class="nav-link text-white" href="/admin/dashboard">
+                    <i class="bx bx-home"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
@@ -41,123 +41,123 @@
                 </a>
             </li>
             
-            <!-- Customer Management Section -->
+            <!-- Seção de Gerenciamento de Clientes -->
             <li class="nav-item">
                 <div class="sidebar-section-header">
-                    <i class="bx bx-users"></i> Manajemen Pelanggan
+                    <i class="bx bx-users"></i> Gestão de Clientes
                 </div>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/customers">
-                    <i class="bx bx-user"></i> Pelanggan
+                    <i class="bx bx-user"></i> Clientes
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/packages">
-                    <i class="bx bx-package"></i> Paket
+                    <i class="bx bx-package"></i> Pacotes
                 </a>
             </li>
             
-            <!-- Invoice Management Section -->
+            <!-- Seção de Gerenciamento de Faturas -->
             <li class="nav-item">
                 <div class="sidebar-section-header">
-                    <i class="bx bx-receipt"></i> Manajemen Invoice
+                    <i class="bx bx-receipt"></i> Gestão de Faturas
                 </div>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/invoices">
-                    <i class="bx bx-file-plus"></i> Buat Invoice
+                    <i class="bx bx-file-plus"></i> Criar Fatura
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/auto-invoice">
-                    <i class="bx bx-calendar-check"></i> Auto Invoice
+                    <i class="bx bx-calendar-check"></i> Fatura Automática
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/invoices-by-type">
-                    <i class="bx bx-list-ul"></i> Invoice per Tipe
+                    <i class="bx bx-list-ul"></i> Faturas por Tipo
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/invoice-list">
-                    <i class="bx bx-receipt"></i> Semua Invoice
+                    <i class="bx bx-receipt"></i> Todas as Faturas
                 </a>
             </li>
             
-            <!-- Payment & Financial Section -->
+            <!-- Seção de Pagamentos e Finanças -->
             <li class="nav-item">
                 <div class="sidebar-section-header">
-                    <i class="bx bx-credit-card"></i> Pembayaran & Keuangan
+                    <i class="bx bx-credit-card"></i> Pagamentos e Finanças
                 </div>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/payments">
-                    <i class="bx bx-user-check"></i> Transaksi Kolektor
-                    <small class="d-block text-muted" style="font-size: 0.7rem; margin-left: 1.5rem;">Hanya transaksi tukang tagih</small>
+                    <i class="bx bx-user-check"></i> Transações do Coletor
+                    <small class="d-block text-muted" style="font-size: 0.7rem; margin-left: 1.5rem;">Apenas transações do cobrador</small>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/all-payments">
-                    <i class="bx bx-credit-card"></i> Riwayat Pembayaran
-                    <small class="d-block text-muted" style="font-size: 0.7rem; margin-left: 1.5rem;">Semua pembayaran (admin + kolektor)</small>
+                    <i class="bx bx-credit-card"></i> Histórico de Pagamentos
+                    <small class="d-block text-muted" style="font-size: 0.7rem; margin-left: 1.5rem;">Todos os pagamentos (admin + coletores)</small>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/collectors">
-                    <i class="bx bx-group"></i> Tukang Tagih
+                    <i class="bx bx-group"></i> Cobradores
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/collector-reports">
-                    <i class="bx bx-bar-chart"></i> Laporan Kolektor
+                    <i class="bx bx-bar-chart"></i> Relatórios do Coletor
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/collector-remittance">
-                    <i class="bx bx-money"></i> Terima Setoran
+                    <i class="bx bx-money"></i> Receber Depósito
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/financial-report">
-                    <i class="bx bx-line-chart"></i> Laporan Keuangan
+                    <i class="bx bx-line-chart"></i> Relatório Financeiro
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/reports">
-                    <i class="bx bx-analytics"></i> Laporan Analisis
+                    <i class="bx bx-analytics"></i> Relatórios de Análise
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/expenses">
-                    <i class="bx bx-money-withdraw"></i> Manajemen Pengeluaran
+                    <i class="bx bx-money-withdraw"></i> Gestão de Despesas
                 </a>
             </li>
             
-            <!-- System & Settings Section -->
+            <!-- Seção de Sistema e Configurações -->
             <li class="nav-item">
                 <div class="sidebar-section-header">
-                    <i class="bx bx-cog"></i> Sistem & Pengaturan
+                    <i class="bx bx-cog"></i> Sistema e Configurações
                 </div>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/payment-settings">
-                    <i class="bx bx-cog"></i> Pengaturan Pembayaran
+                    <i class="bx bx-cog"></i> Configurações de Pagamento
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/whatsapp-settings">
-                    <i class="bx bx-message-dots"></i> Pengaturan WhatsApp
+                    <i class="bx bx-message-dots"></i> Configurações do WhatsApp
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/service-suspension">
-                    <i class="bx bx-pause-circle"></i> Penangguhan Layanan
+                    <i class="bx bx-pause-circle"></i> Suspensão de Serviço
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="/admin/billing/mapping-new">
-                    <i class="bx bx-map"></i> Network Mapping
+                    <i class="bx bx-map"></i> Mapeamento de Rede
                 </a>
             </li>
             <li class="nav-item">
@@ -170,7 +170,7 @@
 </nav>
 
 <style>
-/* Billing Sidebar Specific Styles - Override any conflicting styles */
+/* Estilos Específicos da Barra Lateral de Faturamento - Sobrescreve quaisquer estilos conflitantes */
 #sidebar {
     min-height: 100vh !important;
     background: #111827 !important;
@@ -186,7 +186,7 @@
     overflow-x: hidden !important;
 }
 
-/* Mobile Top Navbar */
+/* Barra de Navegação Superior Móvel */
 .mobile-navbar {
     background: #111827;
     position: fixed;
@@ -203,7 +203,7 @@
     font-weight: 600;
 }
 
-/* Sidebar Overlay */
+/* Sobreposição da Barra Lateral */
 .sidebar-overlay {
     position: fixed;
     top: 0;
@@ -222,7 +222,7 @@
     visibility: visible;
 }
 
-/* Sidebar */
+/* Barra Lateral */
 .sidebar {
     min-height: 100vh;
     background: #111827;
@@ -244,7 +244,7 @@
     overflow-x: hidden;
 }
 
-/* Section Headers */
+/* Cabeçalhos de Seção */
 .sidebar-section-header {
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.75rem;
@@ -285,7 +285,7 @@
     font-size: 1.1rem;
 }
 
-/* Logo styling */
+/* Estilo do Logo */
 .sidebar-header {
     padding: 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -301,7 +301,7 @@
     transform: scale(1.05);
 }
 
-/* Main content styling */
+/* Estilo do Conteúdo Principal */
 .main-content {
     margin-left: 250px;
     padding: 20px;
@@ -309,7 +309,7 @@
     min-height: 100vh;
 }
 
-/* Card styling */
+/* Estilo do Cartão */
 .card {
     border: none;
     border-radius: 15px;
@@ -329,7 +329,7 @@
     padding: 1.5rem;
 }
 
-/* Button styling */
+/* Estilo do Botão */
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
@@ -355,7 +355,7 @@
     border-color: #667eea;
 }
 
-/* Form styling */
+/* Estilo do Formulário */
 .form-control {
     border-radius: 8px;
     border: 1px solid #e1e5e9;
@@ -374,7 +374,7 @@
     margin-bottom: 0.5rem;
 }
 
-/* Table styling */
+/* Estilo da Tabela */
 .table {
     border-radius: 10px;
     overflow: hidden;
@@ -395,7 +395,7 @@
     border-bottom: 1px solid #f1f3f4;
 }
 
-/* Badge styling */
+/* Estilo do Badge */
 .badge {
     font-size: 0.75rem;
     padding: 0.5rem 0.75rem;
@@ -403,7 +403,7 @@
     font-weight: 500;
 }
 
-/* Alert styling */
+/* Estilo do Alerta */
 .alert {
     border: none;
     border-radius: 10px;
@@ -431,11 +431,11 @@
     color: #0c5460;
 }
 
-/* Mobile responsive */
+/* Responsivo para Celular */
 @media (max-width: 767.98px) {
     .main-content {
         margin-left: 0;
-        margin-top: 60px; /* Space for mobile navbar */
+        margin-top: 60px; /* Espaço para a barra de navegação móvel */
         padding: 15px;
     }
     
@@ -481,7 +481,7 @@
         padding: 15px 0 !important;
     }
     
-    /* Ensure navigation items are properly spaced */
+    /* Garante que os itens de navegação estejam espaçados corretamente */
     #sidebar .nav-item {
         margin-bottom: 5px !important;
     }
@@ -493,7 +493,7 @@
         text-overflow: ellipsis !important;
     }
     
-    /* Adjust content for better mobile view */
+    /* Ajusta o conteúdo para melhor visualização em dispositivos móveis */
     .card {
         margin-bottom: 1rem;
     }
@@ -503,7 +503,7 @@
     }
 }
 
-/* Extra small devices */
+/* Dispositivos extra pequenos */
 @media (max-width: 575.98px) {
     .main-content {
         padding: 10px;
@@ -523,10 +523,10 @@
     }
 }
 
-/* Desktop specific */
+/* Específico para Desktop */
 @media (min-width: 768px) {
     .main-content {
-        margin-left: 25%; /* col-md-3 width */
+        margin-left: 25%; /* largura de col-md-3 */
     }
     
     #sidebar {
@@ -548,61 +548,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    // Toggle sidebar on hamburger click
+    // Alterna a barra lateral ao clicar no hambúrguer
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.add('show');
             overlay.classList.add('show');
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            document.body.style.overflow = 'hidden'; // Impede a rolagem do fundo
         });
     }
     
-    // Close sidebar functions
+    // Funções para fechar a barra lateral
     function closeSidebar() {
         sidebar.classList.remove('show');
         overlay.classList.remove('show');
-        document.body.style.overflow = ''; // Restore scrolling
+        document.body.style.overflow = ''; // Restaura a rolagem
     }
     
-    // Close sidebar on close button click
+    // Fecha a barra lateral ao clicar no botão de fechar
     if (sidebarClose) {
         sidebarClose.addEventListener('click', closeSidebar);
     }
     
-    // Close sidebar on overlay click
+    // Fecha a barra lateral ao clicar na sobreposição
     if (overlay) {
         overlay.addEventListener('click', closeSidebar);
     }
     
-    // Close sidebar when clicking on nav links (mobile)
+    // Fecha a barra lateral ao clicar nos links de navegação (móvel)
     const navLinks = sidebar.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
             if (window.innerWidth < 768) {
-                setTimeout(closeSidebar, 100); // Small delay for better UX
+                setTimeout(closeSidebar, 100); // Pequeno atraso para melhor UX
             }
         });
     });
     
-    // Handle window resize
+    // Lida com o redimensionamento da janela
     window.addEventListener('resize', function() {
         if (window.innerWidth >= 768) {
             closeSidebar();
         }
     });
     
-    // Prevent body scroll when sidebar is open on mobile
+    // Impede a rolagem do corpo quando a barra lateral está aberta no celular
     sidebar.addEventListener('touchmove', function(e) {
         if (sidebar.classList.contains('show')) {
             e.stopPropagation();
         }
     });
     
-    // Enable smooth scrolling for sidebar content on mobile
+    // Ativa a rolagem suave para o conteúdo da barra lateral no celular
     const sidebarContent = sidebar.querySelector('.position-sticky');
     if (sidebarContent) {
         sidebarContent.style.webkitOverflowScrolling = 'touch';
         sidebarContent.style.overflowScrolling = 'touch';
     }
 });
-</script> 
+</script>

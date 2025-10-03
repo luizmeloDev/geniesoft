@@ -1,46 +1,46 @@
     </div>
     
-    <!-- Footer -->
+    <!-- Rodapé -->
     <footer class="bg-light mt-5 py-4 border-top">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
                     <h6 class="text-primary mb-2">
-                        <i class="bi bi-gear"></i> Billing System
+                        <i class="bi bi-gear"></i> Sistema de Faturamento
                     </h6>
                     <p class="text-muted small mb-0">
-                        Sistem manajemen billing otomatis untuk ISP<br>
-                        © <%= new Date().getFullYear() %> GEMBOK
+                        Sistema de gerenciamento de faturamento automático para ISPs<br>
+                        © <%= new Date().getFullYear() %> Geniesoft
                     </p>
                 </div>
                 <div class="col-md-6 text-end">
                     <div class="text-muted small">
-                        <div><i class="bi bi-clock"></i> Jam Operasional: 08:00 - 17:00</div>
-                        <div><i class="bi bi-telephone"></i> Support: 081947215703</div>
-                        <div><i class="bi bi-whatsapp"></i> WhatsApp: 081947215703</div>
+                        <div><i class="bi bi-clock"></i> Horário de Funcionamento: 08:00 - 17:00</div>
+                        <div><i class="bi bi-telephone"></i> Suporte: (XX) XXXX-XXXX</div>
+                        <div><i class="bi bi-whatsapp"></i> WhatsApp: (XX) XXXXX-XXXX</div>
                     </div>
                 </div>
             </div>
             
-            <!-- Version Info Row -->
+            <!-- Informações da Versão -->
             <div class="row mt-3">
                 <div class="col-12 text-center">
                     <hr class="my-2">
                     <div class="d-flex justify-content-center align-items-center gap-3">
                         <span class="text-muted small">
                             <i class="bi bi-tag"></i> 
-                            <%= typeof versionInfo !== 'undefined' ? versionInfo.versionName : 'Unknown Version' %>
+                            <%= typeof versionInfo !== 'undefined' ? versionInfo.versionName : 'Versão Desconhecida' %>
                         </span>
                         <span class="badge <%= typeof versionBadge !== 'undefined' ? versionBadge.class : 'badge-secondary' %>">
                             <%= typeof versionBadge !== 'undefined' ? versionBadge.text : 'v1.0.0' %>
                         </span>
                         <span class="text-muted small">
                             <i class="bi bi-code"></i> 
-                            Build <%= typeof versionInfo !== 'undefined' ? versionInfo.buildNumber : 'Unknown' %>
+                            Build <%= typeof versionInfo !== 'undefined' ? versionInfo.buildNumber : 'Desconhecido' %>
                         </span>
                         <span class="text-muted small">
                             <i class="bi bi-calendar"></i> 
-                            <%= typeof versionInfo !== 'undefined' ? versionInfo.versionDate : 'Unknown' %>
+                            <%= typeof versionInfo !== 'undefined' ? versionInfo.versionDate : 'Desconhecida' %>
                         </span>
                     </div>
                 </div>
@@ -51,7 +51,7 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Global Alert Function -->
+    <!-- Função de Alerta Global -->
     <script>
     function showAlert(message, type = 'info') {
         const alertDiv = document.createElement('div');
@@ -64,7 +64,6 @@
         
         document.body.appendChild(alertDiv);
         
-        // Auto dismiss after 5 seconds
         setTimeout(() => {
             if (alertDiv.parentNode) {
                 alertDiv.remove();
@@ -72,7 +71,6 @@
         }, 5000);
     }
     
-    // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function() {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

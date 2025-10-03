@@ -1,38 +1,39 @@
+
 <!-- Admin Mobile Bottom Navigation -->
 <nav class="admin-mobile-bottom-nav">
     <div class="nav-item" onclick="navigateTo('/admin/billing/dashboard')">
         <div class="nav-icon <%= currentPage === 'dashboard' ? 'active' : '' %>">
             <i class="bx bx-home"></i>
         </div>
-        <span class="nav-label">Dashboard</span>
+        <span class="nav-label">Painel</span>
     </div>
     
     <div class="nav-item" onclick="navigateTo('/admin/billing/customers')">
         <div class="nav-icon <%= currentPage === 'customers' ? 'active' : '' %>">
             <i class="bx bx-user"></i>
         </div>
-        <span class="nav-label">Pelanggan</span>
+        <span class="nav-label">Clientes</span>
     </div>
     
     <div class="nav-item" onclick="navigateTo('/admin/billing/invoices')">
         <div class="nav-icon <%= currentPage === 'invoices' ? 'active' : '' %>">
             <i class="bx bx-receipt"></i>
         </div>
-        <span class="nav-label">Tagihan</span>
+        <span class="nav-label">Faturas</span>
     </div>
     
     <div class="nav-item" onclick="navigateTo('/admin/billing/payments')">
         <div class="nav-icon <%= currentPage === 'payments' ? 'active' : '' %>">
             <i class="bx bx-credit-card"></i>
         </div>
-        <span class="nav-label">Pembayaran</span>
+        <span class="nav-label">Pagamentos</span>
     </div>
     
     <div class="nav-item" onclick="navigateTo('/admin/billing/mapping')">
         <div class="nav-icon <%= currentPage === 'mapping' ? 'active' : '' %>">
             <i class="bx bx-map"></i>
         </div>
-        <span class="nav-label">Peta</span>
+        <span class="nav-label">Mapa</span>
     </div>
 </nav>
 
@@ -167,15 +168,15 @@ document.addEventListener('DOMContentLoaded', function() {
         icon.classList.remove('active');
         
         // Check if current path matches this nav item
-        if (currentPath.includes('/dashboard') && label.textContent === 'Dashboard') {
+        if (currentPath.includes('/dashboard') && label.textContent === 'Painel') {
             icon.classList.add('active');
-        } else if (currentPath.includes('/customers') && label.textContent === 'Pelanggan') {
+        } else if (currentPath.includes('/customers') && label.textContent === 'Clientes') {
             icon.classList.add('active');
-        } else if (currentPath.includes('/invoices') && label.textContent === 'Tagihan') {
+        } else if (currentPath.includes('/invoices') && label.textContent === 'Faturas') {
             icon.classList.add('active');
-        } else if (currentPath.includes('/payments') && label.textContent === 'Pembayaran') {
+        } else if (currentPath.includes('/payments') && label.textContent === 'Pagamentos') {
             icon.classList.add('active');
-        } else if (currentPath.includes('/mapping') && label.textContent === 'Peta') {
+        } else if (currentPath.includes('/mapping') && label.textContent === 'Mapa') {
             icon.classList.add('active');
         }
     });
