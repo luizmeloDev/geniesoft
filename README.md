@@ -1,4 +1,4 @@
-# Bill Padlock - Sistema Integrado de Gerenciamento de ISP
+# Geniesoft - Sistema Integrado de Gerenciamento de ISP
 
 [![Estrelas do GitHub](https://img.shields.io/github/stars/alijayanet/gembok-bill)](https://github.com/alijayanet/gembok-bill/stargazers)
 [![Girks do GitHub](https://img.shields.io/github/forks/alijayanet/gembok-bill)](https://github.com/alijayanet/gembok-bill/network)
@@ -7,7 +7,7 @@
 
 ## 📋 Descrição do aplicativo
 
-**Gembok Bill** é um sistema integrado de gerenciamento RTRWNet que combina o WhatsApp Gateway com um portal de administração web para gerenciamento abrangente de serviços de internet. Este aplicativo foi desenvolvido especificamente para a RTRWNet, que requer uma solução completa para gerenciamento de clientes, faturamento, monitoramento e notificações.
+**Geniesoft** é um sistema integrado de gerenciamento RTRWNet que combina o WhatsApp Gateway com um portal de administração web para gerenciamento abrangente de serviços de internet. Este aplicativo foi desenvolvido especificamente para a RTRWNet, que requer uma solução completa para gerenciamento de clientes, faturamento, monitoramento e notificações.
 
 ### 🎯 Principais recursos
 
