@@ -8,6 +8,7 @@ const { monitorPPPoEConnections } = require('./config/mikrotik');
 const fs = require('fs');
 const session = require('express-session');
 const { getSetting } = require('./config/settingsManager');
+const { initializeSchema } = require('./config/typesenseManager');
 
 i18n.configure({
   locales: ['en', 'id', 'pt'],
@@ -20,9 +21,6 @@ i18n.configure({
 
 // Importar agendador de faturas
 const invoiceScheduler = require('./config/scheduler');
-
-// Importar configuração automática do GenieACS para desenvolvimento (DESABILITADO - usando interface web)
-// const { autoGenieACSSetup } = require('./config/autoGenieACSSetup');
 
 // Importar serviço de sincronização de técnicos para hot-reload
 const technicianSync = {
@@ -60,6 +58,9 @@ technicianSync.start();
 
 // Inicializar aplicação Express
 const app = express();
+
+// Inicializar o schema do Typesense na inicialização
+initializeSchema();
 
 // Importar rota adminAuth
 const { router: adminAuthRouter, adminAuth } = require('./routes/adminAuth');
@@ -264,11 +265,14 @@ app.use('/webhook/voucher', publicVoucherRouter);
 const apiDashboardRouter = require('./routes/apiDashboard');
 app.use('/api', apiDashboardRouter);
 
+// Importar e usar a nova rota de busca
+const searchRouter = require('./routes/search');
+app.use('/api/search', adminAuth, searchRouter);
+
 // Constantes
 const VERSION = '1.0.0';
 
 // Variável global para armazenar o status da conexão do WhatsApp
-// (Mantido, pois é um status de tempo de execução)
 global.whatsappStatus = {
     connected: false,
     qrCode: null,
@@ -277,7 +281,6 @@ global.whatsappStatus = {
     status: 'disconnected'
 };
 
-// REMOVER global.appSettings
 // Garantir que o diretório da sessão do WhatsApp exista
 const sessionDir = getSetting('whatsapp_session_path', './whatsapp-session');
 if (!fs.existsSync(sessionDir)) {
@@ -370,10 +373,8 @@ app.get('/isolir', async (req, res) => {
         const adminWA = getSetting('admins.0', '6281234567890'); // formato 62...
         const adminDisplay = adminWA && adminWA.startsWith('62') ? ('0' + adminWA.slice(2)) : (adminWA || '-');
 
-        // Resolver nome do cliente automaticamente: ordem de prioridade -> query.nome -> nome de usuário PPPoE -> sessão -> '-' 
         let customerName = (req.query.nome || req.query.name || '').toString().trim();
         if (!customerName) {
-            // Tentar a partir do nome de usuário do cliente da sessão
             const sessionUsername = req.session && (req.session.customer_username || req.session.username);
             if (sessionUsername) {
                 try {
@@ -383,7 +384,6 @@ app.get('/isolir', async (req, res) => {
             }
         }
         if (!customerName) {
-            // Tentar a partir do nome de usuário PPPoE (query pppoe / username)
             const qUser = (req.query.pppoe || req.query.username || '').toString().trim();
             if (qUser) {
                 try {
@@ -393,7 +393,6 @@ app.get('/isolir', async (req, res) => {
             }
         }
         if (!customerName) {
-            // Tentar a partir do número de telefone (query phone) como fallback
             const qPhone = (req.query.phone || req.query.nohp || '').toString().trim();
             if (qPhone) {
                 try {
@@ -404,11 +403,9 @@ app.get('/isolir', async (req, res) => {
         }
         if (!customerName) customerName = 'Cliente';
 
-        // Caminho do logotipo de settings.json (servido via padrão /public ou /storage)
         const logoFile = settings.logo_filename || 'logo.png';
         const logoPath = `/public/img/${logoFile}`;
 
-        // Contas de pagamento de settings.json (transferência bancária e dinheiro)
         const paymentAccounts = settings.payment_accounts || {};
 
         res.render('isolir', {
@@ -438,36 +435,24 @@ app.use('/collector', collectorDashboardRouter);
 try {
     whatsapp.connectToWhatsApp().then(sock => {
         if (sock) {
-            // Definir instância do sock para o whatsapp
             whatsapp.setSock(sock);
-
-            // Definir instância do sock para o monitoramento PPPoE
             pppoeMonitor.setSock(sock);
 
-            // Inicializar Comandos do WhatsApp do Agente
             const AgentWhatsAppIntegration = require('./config/agentWhatsAppIntegration');
             const agentWhatsApp = new AgentWhatsAppIntegration(whatsapp);
             agentWhatsApp.initialize();
             
             console.log('🤖 Comandos do WhatsApp do Agente inicializados');
             pppoeCommands.setSock(sock);
-
-            // Definir instância do sock para os comandos GenieACS
             genieacsCommands.setSock(sock);
-
-            // Definir instância do sock para os comandos MikroTik
             mikrotikCommands.setSock(sock);
-
-            // Definir instância do sock para o RX Power Monitor
             rxPowerMonitor.setSock(sock);
 
-            // Definir instância do sock para o relatório de problemas
             const troubleReport = require('./config/troubleReport');
             troubleReport.setSockInstance(sock);
 
             logger.info('WhatsApp conectado com sucesso');
 
-            // Inicializar monitoramento PPPoE se o MikroTik estiver configurado
             if (getSetting('mikrotik_host') && getSetting('mikrotik_user') && getSetting('mikrotik_password')) {
                 pppoeMonitor.initializePPPoEMonitoring().then(() => {
                     logger.info('Monitoramento PPPoE inicializado');
@@ -476,7 +461,6 @@ try {
                 });
             }
 
-            // Inicializar Gerenciador de Intervalos (substitui sistemas de monitoramento individuais)
             try {
                 const intervalManager = require('./config/intervalManager');
                 intervalManager.initialize();
@@ -489,7 +473,6 @@ try {
         logger.error('Erro ao conectar ao WhatsApp:', err);
     });
 
-    // Iniciar monitoramento PPPoE antigo se configurado (fallback)
     if (getSetting('mikrotik_host') && getSetting('mikrotik_user') && getSetting('mikrotik_password')) {
         monitorPPPoEConnections().catch(err => {
             logger.error('Erro ao iniciar o monitoramento PPPoE legado:', err);
@@ -499,12 +482,9 @@ try {
     logger.error('Erro ao inicializar os serviços:', error);
 }
 
-// Adicionar um atraso maior para reconectar ao WhatsApp
 const RECONNECT_DELAY = 30000; // 30 segundos
 
-// Função para iniciar o servidor apenas na porta configurada em settings.json
 function startServer(portToUse) {
-    // Garantir que a porta seja um número
     const port = parseInt(portToUse);
     if (isNaN(port) || port < 1 || port > 65535) {
         logger.error(`Porta inválida: ${portToUse}`);
@@ -514,14 +494,11 @@ function startServer(portToUse) {
     logger.info(`Iniciando o servidor na porta configurada: ${port}`);
     logger.info(`A porta foi obtida de settings.json - não há fallback para portas alternativas`);
     
-    // Usar apenas a porta de settings.json, sem fallback
     try {
         const server = app.listen(port, () => {
             logger.info(`✅ Servidor iniciado com sucesso na porta ${port}`);
             logger.info(`🌐 Portal Web disponível em: http://localhost:${port}`);
             logger.info(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
-            // Atualizar global.appSettings.port com a porta usada com sucesso
-            // global.appSettings.port = port.toString(); // Remover isso
         }).on('error', (err) => {
             if (err.code === 'EADDRINUSE') {
                 logger.error(`❌ ERRO: A porta ${port} já está em uso por outra aplicação!`);
@@ -538,36 +515,11 @@ function startServer(portToUse) {
     }
 }
 
-// Iniciar o servidor com a porta de settings.json
 const port = getSetting('server_port', 4555);
 logger.info(`Tentando iniciar o servidor na porta configurada: ${port}`);
 
-// Iniciar o servidor com a porta da configuração
 startServer(port);
 
-// Configuração automática do DNS GenieACS para desenvolvimento (DESABILITADO - usando interface web)
-// setTimeout(async () => {
-//     try {
-//         logger.info('🚀 Iniciando configuração automática do DNS GenieACS para desenvolvimento...');
-//         const result = await autoGenieACSSetup.runAutoSetup();
-//         
-//         if (result.success) {
-//             logger.info('✅ Configuração automática do DNS GenieACS bem-sucedida');
-//             if (result.data) {
-//                 logger.info(`📋 IP do Servidor: ${result.data.serverIP}`);
-//                 logger.info(`📋 URL do GenieACS: ${result.data.genieacsUrl}`);
-//                 logger.info(`📋 Script do Mikrotik: ${result.data.mikrotikScript}`);
-//             }
-//         } else {
-//             logger.warn(`⚠️  Configuração automática do DNS GenieACS: ${result.message}`);
-//         }
-//     } catch (error) {
-//         logger.error('❌ Erro na configuração automática do DNS GenieACS:', error);
-//     }
-// }, 15000); // Atraso de 15 segundos após o início do servidor
-
-// Adicionar comando para adicionar o número do cliente à tag GenieACS
 const { addCustomerTag } = require('./config/customerTag');
 
-// Exportar app para teste
 module.exports = app;

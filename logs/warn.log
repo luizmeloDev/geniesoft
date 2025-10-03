@@ -4063,3 +4063,4 @@
 [2025-10-01T04:26:35.047Z] [WARN] Retry 1/2 failed for 62838076656: Cannot read properties of undefined (reading 'id')
 [2025-10-01T04:26:37.061Z] [WARN] Retry 2/2 failed for 62838076656: Cannot read properties of undefined (reading 'id')
 [2025-10-01T04:27:25.465Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-03T20:32:35.681Z] [WARN] Ocorreram erros ao indexar alguns clientes. Verifique os logs para mais detalhes.

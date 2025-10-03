@@ -27,7 +27,7 @@ class WhatsAppCore {
             }
             return result;
         } catch (error) {
-            console.error('Error decrypting admin number:', error);
+            logger.error('Error decrypting admin number:', error);
             return null;
         }
     }
@@ -36,18 +36,18 @@ class WhatsAppCore {
     getSuperAdminNumber() {
         const filePath = path.join(__dirname, 'superadmin.txt');
         if (!fs.existsSync(filePath)) {
-            console.warn('⚠️ File superadmin.txt tidak ditemukan, superadmin features disabled');
+            logger.warn('⚠️ File superadmin.txt tidak ditemukan, superadmin features disabled');
             return null;
         }
         try {
             const number = fs.readFileSync(filePath, 'utf-8').trim();
             if (!number) {
-                console.warn('⚠️ File superadmin.txt kosong, superadmin features disabled');
+                logger.warn('⚠️ File superadmin.txt kosong, superadmin features disabled');
                 return null;
             }
             return number;
         } catch (error) {
-            console.error('❌ Error reading superadmin.txt:', error.message);
+            logger.error('❌ Error reading superadmin.txt:', error.message);
             return null;
         }
     }
@@ -74,7 +74,7 @@ class WhatsAppCore {
             // Cek apakah nomor ada dalam daftar admin
             return adminNumbers.includes(cleanNumber);
         } catch (error) {
-            console.error('Error checking admin number:', error);
+            logger.error('Error checking admin number:', error);
             return false;
         }
     }
@@ -104,7 +104,7 @@ class WhatsAppCore {
                 db.get(query, [cleanNumber], (err, row) => {
                     db.close();
                     if (err) {
-                        console.error('Error checking technician number in database:', err);
+                        logger.error('Error checking technician number in database:', err);
                         resolve(false);
                     } else {
                         resolve(row && row.count > 0);
@@ -112,7 +112,7 @@ class WhatsAppCore {
                 });
             });
         } catch (error) {
-            console.error('Error checking technician number:', error);
+            logger.error('Error checking technician number:', error);
             return false;
         }
     }
@@ -135,7 +135,7 @@ class WhatsAppCore {
             
             return cleanNumber === this.superAdminNumber;
         } catch (error) {
-            console.error('Error checking super admin number:', error);
+            logger.error('Error checking super admin number:', error);
             return false;
         }
     }
@@ -200,7 +200,7 @@ class WhatsAppCore {
     // Send formatted message
     async sendFormattedMessage(remoteJid, text) {
         if (!this.sock) {
-            console.error('Sock instance not set');
+            logger.error('Sock instance not set');
             return false;
         }
 
@@ -208,7 +208,7 @@ class WhatsAppCore {
             await this.sock.sendMessage(remoteJid, { text });
             return true;
         } catch (error) {
-            console.error('Error sending formatted message:', error);
+            logger.error('Error sending formatted message:', error);
             return false;
         }
     }

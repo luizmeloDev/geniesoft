@@ -98,7 +98,7 @@ async function handleAddWAN(remoteJid, params, sock) {
 // Fungsi untuk mencari perangkat berdasarkan tag nomor pelanggan
 async function findDeviceByTag(customerNumber) {
     try {
-        console.log(`🔍 [FIND_DEVICE] Searching for device with tag: ${customerNumber}`);
+        logger.debug(`[FIND_DEVICE] Searching for device with tag: ${customerNumber}`);
         
         // Dapatkan URL GenieACS
         const genieacsUrl = getSetting('genieacs_url', 'http://localhost:7557');
@@ -107,7 +107,7 @@ async function findDeviceByTag(customerNumber) {
             return null;
         }
         
-        console.log(`🌐 [FIND_DEVICE] GenieACS URL: ${genieacsUrl}`);
+        logger.debug(`[FIND_DEVICE] GenieACS URL: ${genieacsUrl}`);
         
         // Method 1: Coba dengan query exact match (FASTEST)
         try {
@@ -115,7 +115,7 @@ async function findDeviceByTag(customerNumber) {
             const queryJson = JSON.stringify(queryObj);
             const encodedQuery = encodeURIComponent(queryJson);
             
-            console.log(`📋 [FIND_DEVICE] Trying exact tag match:`, queryObj);
+            logger.debug(`[FIND_DEVICE] Trying exact tag match:`, queryObj);
             
             const response = await axios.get(`${genieacsUrl}/devices/?query=${encodedQuery}`, {
                 auth: { 
@@ -129,11 +129,11 @@ async function findDeviceByTag(customerNumber) {
             });
             
             if (response.data && response.data.length > 0) {
-                console.log(`✅ [FIND_DEVICE] Device found with exact tag match:`, response.data[0]._id);
+                logger.debug(`[FIND_DEVICE] Device found with exact tag match:`, response.data[0]._id);
                 return response.data[0];
             }
         } catch (exactError) {
-            console.log(`⚠️ [FIND_DEVICE] Exact tag search failed:`, exactError.message);
+            logger.warn(`[FIND_DEVICE] Exact tag search failed: ${exactError.message}`);
         }
         
         // Method 2: Coba dengan query partial match (MEDIUM SPEED)
@@ -142,7 +142,7 @@ async function findDeviceByTag(customerNumber) {
             const partialQueryJson = JSON.stringify(partialQueryObj);
             const partialEncodedQuery = encodeURIComponent(partialQueryJson);
             
-            console.log(`🔍 [FIND_DEVICE] Trying partial match query:`, partialQueryObj);
+            logger.debug(`[FIND_DEVICE] Trying partial match query:`, partialQueryObj);
             
             const partialResponse = await axios.get(`${genieacsUrl}/devices/?query=${partialEncodedQuery}`, {
                 auth: { 
@@ -156,16 +156,16 @@ async function findDeviceByTag(customerNumber) {
             });
             
             if (partialResponse.data && partialResponse.data.length > 0) {
-                console.log(`✅ [FIND_DEVICE] Device found with partial tag match:`, partialResponse.data[0]._id);
+                logger.debug(`[FIND_DEVICE] Device found with partial tag match:`, partialResponse.data[0]._id);
                 return partialResponse.data[0];
             }
         } catch (partialError) {
-            console.log(`⚠️ [FIND_DEVICE] Partial tag search failed:`, partialError.message);
+            logger.warn(`[FIND_DEVICE] Partial tag search failed: ${partialError.message}`);
         }
         
         // Method 3: Manual search hanya jika jumlah device < 100 (SLOWEST)
         try {
-            console.log(`🔍 [FIND_DEVICE] Trying manual search through all devices...`);
+            logger.debug(`[FIND_DEVICE] Trying manual search through all devices...`);
             
             const allDevicesResponse = await axios.get(`${genieacsUrl}/devices`, {
                 auth: { 
@@ -180,11 +180,11 @@ async function findDeviceByTag(customerNumber) {
             
             if (allDevicesResponse.data && allDevicesResponse.data.length > 0) {
                 const totalDevices = allDevicesResponse.data.length;
-                console.log(`📊 [FIND_DEVICE] Total devices in GenieACS: ${totalDevices}`);
+                logger.debug(`[FIND_DEVICE] Total devices in GenieACS: ${totalDevices}`);
                 
                 // Skip manual search jika terlalu banyak devices (performance issue)
                 if (totalDevices > 200) {
-                    console.log(`⚠️ [FIND_DEVICE] Too many devices (${totalDevices}), skipping manual search for performance`);
+                    logger.warn(`[FIND_DEVICE] Too many devices (${totalDevices}), skipping manual search for performance`);
                     return null;
                 }
                 
@@ -199,13 +199,13 @@ async function findDeviceByTag(customerNumber) {
                         if (tag && typeof tag === 'string') {
                             // Exact match
                             if (tag === customerNumber) {
-                                console.log(`✅ [FIND_DEVICE] Device found with exact tag match: ${device._id}`);
+                                logger.debug(`[FIND_DEVICE] Device found with exact tag match: ${device._id}`);
                                 return device;
                             }
                             
                             // Partial match (tag contains customer number or vice versa)
                             if (tag.includes(customerNumber) || customerNumber.includes(tag)) {
-                                console.log(`✅ [FIND_DEVICE] Device found with partial tag match: ${device._id} (tag: ${tag})`);
+                                logger.debug(`[FIND_DEVICE] Device found with partial tag match: ${device._id} (tag: ${tag})`);
                                 return device;
                             }
                             
@@ -214,7 +214,7 @@ async function findDeviceByTag(customerNumber) {
                             const cleanCustomer = customerNumber.replace(/^\+62|^62|^0/, '');
                             
                             if (cleanTag === cleanCustomer || cleanTag.includes(cleanCustomer) || cleanCustomer.includes(cleanTag)) {
-                                console.log(`✅ [FIND_DEVICE] Device found with cleaned tag match: ${device._id} (original: ${tag}, cleaned: ${cleanTag})`);
+                                logger.debug(`[FIND_DEVICE] Device found with cleaned tag match: ${device._id} (original: ${tag}, cleaned: ${cleanTag})`);
                                 return device;
                             }
                         }
@@ -222,15 +222,15 @@ async function findDeviceByTag(customerNumber) {
                 }
             }
         } catch (manualError) {
-            console.log(`⚠️ [FIND_DEVICE] Manual search failed:`, manualError.message);
+            logger.warn(`[FIND_DEVICE] Manual search failed: ${manualError.message}`);
         }
         
-        console.log(`❌ [FIND_DEVICE] No device found with tag: ${customerNumber}`);
+        logger.warn(`[FIND_DEVICE] No device found with tag: ${customerNumber}`);
         return null;
         
     } catch (error) {
         logger.error(`Error finding device by tag: ${error.message}`);
-        console.error(`❌ [FIND_DEVICE] Fatal error:`, error);
+        logger.error(`[FIND_DEVICE] Fatal error:`, error);
         return null;
     }
 }

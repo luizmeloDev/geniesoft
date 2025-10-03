@@ -1,15 +1,6 @@
 const logger = require('./logger');
-
-// Helper function to get settings with cache
-function getSettingsWithCache() {
-    try {
-        const { getSettings } = require('./settings');
-        return getSettings();
-    } catch (error) {
-        logger.error('Error getting settings:', error);
-        return {};
-    }
-}
+const { getSettingsWithCache } = require('./settingsManager');
+const languageHelper = require('./languageHelper');
 
 class AgentWhatsAppManager {
     constructor() {
@@ -20,240 +11,204 @@ class AgentWhatsAppManager {
         this.sock = sock;
     }
 
+    async getMessage(key, phone, params) {
+        if (phone) {
+            return await languageHelper.getLocalizedMessage(key, phone, params);
+        }
+        return languageHelper.getMessageWithLanguage(key, 'pt', params);
+    }
+
     // ===== VOUCHER NOTIFICATIONS =====
 
     async sendVoucherNotification(agent, customer, voucherData) {
         try {
             if (!this.sock) {
                 logger.warn('WhatsApp socket not available for voucher notification');
-                return { success: false, message: 'WhatsApp tidak tersedia' };
+                const message = await this.getMessage('whatsapp.notAvailable', agent.phone || customer.phone);
+                return { success: false, message };
             }
 
             const settings = getSettingsWithCache();
             const companyHeader = settings.company_header || '📱 ALIJAYA DIGITAL NETWORK 📱\n\n';
             const footerInfo = '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' + (settings.footer_info || 'Powered by Alijaya Digital Network');
 
-            // Message untuk agent
-            const agentMessage = `${companyHeader}🎫 **VOUCHER BERHASIL DIJUAL**
+            const params = {
+                voucherCode: voucherData.voucherCode,
+                packageName: voucherData.packageName,
+                price: voucherData.price.toLocaleString(),
+                commission: voucherData.commission.toLocaleString(),
+                customerName: customer.name,
+                customerPhone: customer.phone || await this.getMessage('common.notAvailable', agent.phone),
+                contactPhone: settings.contact_phone || 'Admin'
+            };
 
-📋 **Detail Voucher:**
-• Kode: \`${voucherData.voucherCode}\`
-• Paket: ${voucherData.packageName}
-• Harga: Rp ${voucherData.price.toLocaleString()}
-• Komisi: Rp ${voucherData.commission.toLocaleString()}
+            const agentMessageText = await this.getMessage('notifications.voucher.soldToAgent', agent.phone, params);
+            const agentMessage = `${companyHeader}${agentMessageText}${footerInfo}`;
 
-👤 **Pelanggan:**
-• Nama: ${customer.name}
-• HP: ${customer.phone || 'Tidak ada'}
+            const customerMessageText = await this.getMessage('notifications.voucher.sentToCustomer', customer.phone, params);
+            const customerMessage = `${companyHeader}${customerMessageText}${footerInfo}`;
 
-✅ Voucher telah berhasil dijual dan komisi telah ditambahkan ke saldo Anda.${footerInfo}`;
-
-            // Message untuk pelanggan
-            const customerMessage = `${companyHeader}🎫 **VOUCHER HOTSPOT ANDA**
-
-📋 **Detail Voucher:**
-• Kode: \`${voucherData.voucherCode}\`
-• Paket: ${voucherData.packageName}
-• Harga: Rp ${voucherData.price.toLocaleString()}
-
-🔑 **Cara Menggunakan:**
-1. Hubungkan ke WiFi hotspot
-2. Masukkan kode voucher: \`${voucherData.voucherCode}\`
-3. Nikmati akses internet sesuai paket
-
-📞 **Bantuan:** Hubungi ${settings.contact_phone || 'Admin'} jika ada masalah.${footerInfo}`;
-
-            // Kirim ke agent
             if (agent.phone) {
                 await this.sock.sendMessage(agent.phone + '@s.whatsapp.net', { text: agentMessage });
             }
 
-            // Kirim ke pelanggan jika ada nomor HP
             if (customer.phone) {
                 await this.sock.sendMessage(customer.phone + '@s.whatsapp.net', { text: customerMessage });
             }
 
-            return { success: true, message: 'Notifikasi berhasil dikirim' };
+            return { success: true, message: await this.getMessage('notifications.success', agent.phone) };
         } catch (error) {
             logger.error('Send voucher notification error:', error);
-            return { success: false, message: 'Gagal mengirim notifikasi' };
+            const message = await this.getMessage('notifications.failure', null);
+            return { success: false, message };
         }
     }
 
-    // Send voucher directly to customer
     async sendVoucherToCustomer(customerPhone, customerName, voucherCode, packageName, price, agentInfo = null) {
         try {
             if (!this.sock) {
                 logger.warn('WhatsApp socket not available for customer voucher');
-                return { success: false, message: 'WhatsApp tidak tersedia' };
+                return { success: false, message: await this.getMessage('whatsapp.notAvailable', customerPhone) };
             }
 
             const settings = getSettingsWithCache();
             const companyHeader = settings.company_header || '📱 ALIJAYA DIGITAL NETWORK 📱\n\n';
             const footerInfo = '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' + (settings.footer_info || 'Powered by Alijaya Digital Network');
 
-            // Create agent info text
             let agentInfoText = '';
             if (agentInfo && agentInfo.name) {
-                agentInfoText = `\n👤 **Dibeli melalui Agent:** ${agentInfo.name}`;
+                agentInfoText = await this.getMessage('notifications.voucher.purchasedVia', customerPhone, { agentName: agentInfo.name });
                 if (agentInfo.phone) {
-                    agentInfoText += `\n📞 **Kontak Agent:** ${agentInfo.phone}`;
+                    agentInfoText += await this.getMessage('notifications.voucher.agentContact', customerPhone, { agentPhone: agentInfo.phone });
                 }
             }
 
-            // Message untuk customer (tanpa harga internal)
-            const customerMessage = `${companyHeader}🎫 **VOUCHER HOTSPOT ANDA**
+            const params = {
+                voucherCode,
+                packageName,
+                price: price.toLocaleString('id-ID'),
+                agentInfoText,
+                contactPhone: settings.contact_phone || 'Admin'
+            };
 
-📋 **Detail Voucher:**
-• Kode: \`${voucherCode}\`
-• Paket: ${packageName}
-• Harga: Rp ${price.toLocaleString('id-ID')}${agentInfoText}
+            const customerMessageText = await this.getMessage('notifications.voucher.sentDirectlyToCustomer', customerPhone, params);
+            const customerMessage = `${companyHeader}${customerMessageText}${footerInfo}`;
 
-🔑 **Cara Menggunakan:**
-1. Hubungkan ke WiFi hotspot
-2. Masukkan kode voucher: \`${voucherCode}\`
-3. Nikmati akses internet sesuai paket
-
-📞 **Bantuan:** Hubungi ${settings.contact_phone || 'Admin'} jika ada masalah.${footerInfo}`;
-
-            // Kirim ke customer
             await this.sock.sendMessage(customerPhone + '@s.whatsapp.net', { text: customerMessage });
             
             logger.info(`Voucher sent to customer: ${customerPhone}`);
-            return { success: true, message: 'Voucher berhasil dikirim ke customer' };
+            return { success: true, message: await this.getMessage('notifications.voucher.sendToCustomerSuccess', customerPhone) };
         } catch (error) {
             logger.error('Send voucher to customer error:', error);
-            return { success: false, message: 'Gagal mengirim voucher ke customer' };
+            return { success: false, message: await this.getMessage('notifications.voucher.sendToCustomerFailure', customerPhone) };
         }
     }
-
-    // ===== PAYMENT NOTIFICATIONS =====
 
     async sendPaymentNotification(agent, customer, paymentData) {
         try {
             if (!this.sock) {
                 logger.warn('WhatsApp socket not available for payment notification');
-                return { success: false, message: 'WhatsApp tidak tersedia' };
+                return { success: false, message: await this.getMessage('whatsapp.notAvailable', agent.phone) };
             }
 
             const settings = getSettingsWithCache();
             const companyHeader = settings.company_header || '📱 ALIJAYA DIGITAL NETWORK 📱\n\n';
             const footerInfo = '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' + (settings.footer_info || 'Powered by Alijaya Digital Network');
+            
+            const params = {
+                amount: paymentData.amount.toLocaleString(),
+                method: paymentData.method,
+                commission: paymentData.commission.toLocaleString(),
+                customerName: customer.name,
+                customerPhone: customer.phone || await this.getMessage('common.notAvailable', agent.phone),
+                date: new Date().toLocaleString('id-ID'),
+                agentName: agent.name
+            };
 
-            // Message untuk agent
-            const agentMessage = `${companyHeader}💰 **PEMBAYARAN BERHASIL DIPROSES**
+            const agentMessageText = await this.getMessage('notifications.payment.processedForAgent', agent.phone, params);
+            const agentMessage = `${companyHeader}${agentMessageText}${footerInfo}`;
 
-📋 **Detail Pembayaran:**
-• Jumlah: Rp ${paymentData.amount.toLocaleString()}
-• Metode: ${paymentData.method}
-• Komisi: Rp ${paymentData.commission.toLocaleString()}
+            const customerMessageText = await this.getMessage('notifications.payment.receivedFromCustomer', customer.phone, params);
+            const customerMessage = `${companyHeader}${customerMessageText}${footerInfo}`;
 
-👤 **Pelanggan:**
-• Nama: ${customer.name}
-• HP: ${customer.phone || 'Tidak ada'}
-
-✅ Pembayaran telah berhasil diproses dan komisi telah ditambahkan ke saldo Anda.${footerInfo}`;
-
-            // Message untuk pelanggan
-            const customerMessage = `${companyHeader}✅ **PEMBAYARAN DITERIMA**
-
-📋 **Detail Pembayaran:**
-• Jumlah: Rp ${paymentData.amount.toLocaleString()}
-• Metode: ${paymentData.method}
-• Tanggal: ${new Date().toLocaleString('id-ID')}
-
-👤 **Diproses oleh:** ${agent.name}
-
-✅ Terima kasih atas pembayaran Anda. Tagihan telah lunas.${footerInfo}`;
-
-            // Kirim ke agent
             if (agent.phone) {
                 await this.sock.sendMessage(agent.phone + '@s.whatsapp.net', { text: agentMessage });
             }
 
-            // Kirim ke pelanggan jika ada nomor HP
             if (customer.phone) {
                 await this.sock.sendMessage(customer.phone + '@s.whatsapp.net', { text: customerMessage });
             }
 
-            return { success: true, message: 'Notifikasi berhasil dikirim' };
+            return { success: true, message: await this.getMessage('notifications.success', agent.phone) };
         } catch (error) {
             logger.error('Send payment notification error:', error);
-            return { success: false, message: 'Gagal mengirim notifikasi' };
+            return { success: false, message: await this.getMessage('notifications.failure', agent.phone) };
         }
     }
-
-    // ===== BALANCE NOTIFICATIONS =====
 
     async sendBalanceUpdateNotification(agent, balanceData) {
         try {
             if (!this.sock) {
                 logger.warn('WhatsApp socket not available for balance notification');
-                return { success: false, message: 'WhatsApp tidak tersedia' };
+                return { success: false, message: await this.getMessage('whatsapp.notAvailable', agent.phone) };
             }
 
             const settings = getSettingsWithCache();
             const companyHeader = settings.company_header || '📱 ALIJAYA DIGITAL NETWORK 📱\n\n';
             const footerInfo = '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' + (settings.footer_info || 'Powered by Alijaya Digital Network');
-
-            const message = `${companyHeader}💰 **SALDO TELAH DIUPDATE**
-
-📋 **Detail Saldo:**
-• Saldo Sebelumnya: Rp ${balanceData.previousBalance.toLocaleString()}
-• Perubahan: ${balanceData.change > 0 ? '+' : ''}Rp ${balanceData.change.toLocaleString()}
-• Saldo Sekarang: Rp ${balanceData.currentBalance.toLocaleString()}
-
-📝 **Keterangan:** ${balanceData.description}
-
-✅ Saldo Anda telah berhasil diupdate.${footerInfo}`;
+            
+            const params = {
+                previousBalance: balanceData.previousBalance.toLocaleString(),
+                change: `${balanceData.change > 0 ? '+' : ''}Rp ${balanceData.change.toLocaleString()}`,
+                currentBalance: balanceData.currentBalance.toLocaleString(),
+                description: balanceData.description
+            };
+            
+            const messageText = await this.getMessage('notifications.balance.updated', agent.phone, params);
+            const message = `${companyHeader}${messageText}${footerInfo}`;
 
             if (agent.phone) {
                 await this.sock.sendMessage(agent.phone + '@s.whatsapp.net', { text: message });
             }
 
-            return { success: true, message: 'Notifikasi berhasil dikirim' };
+            return { success: true, message: await this.getMessage('notifications.success', agent.phone) };
         } catch (error) {
             logger.error('Send balance notification error:', error);
-            return { success: false, message: 'Gagal mengirim notifikasi' };
+            return { success: false, message: await this.getMessage('notifications.failure', agent.phone) };
         }
     }
-
-    // ===== REQUEST NOTIFICATIONS =====
 
     async sendRequestApprovedNotification(agent, requestData) {
         try {
             if (!this.sock) {
                 logger.warn('WhatsApp socket not available for request notification');
-                return { success: false, message: 'WhatsApp tidak tersedia' };
+                return { success: false, message: await this.getMessage('whatsapp.notAvailable', agent.phone) };
             }
 
             const settings = getSettingsWithCache();
             const companyHeader = settings.company_header || '📱 ALIJAYA DIGITAL NETWORK 📱\n\n';
             const footerInfo = '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' + (settings.footer_info || 'Powered by Alijaya Digital Network');
 
-            const message = `${companyHeader}✅ **REQUEST SALDO DISETUJUI**
+            const params = {
+                amount: requestData.amount.toLocaleString(),
+                requestedAt: new Date(requestData.requestedAt).toLocaleString('id-ID'),
+                approvedAt: new Date().toLocaleString('id-ID'),
+                previousBalance: requestData.previousBalance.toLocaleString(),
+                newBalance: requestData.newBalance.toLocaleString(),
+                adminNotes: requestData.adminNotes || await this.getMessage('common.notAvailable', agent.phone)
+            };
 
-📋 **Detail Request:**
-• Jumlah: Rp ${requestData.amount.toLocaleString()}
-• Tanggal Request: ${new Date(requestData.requestedAt).toLocaleString('id-ID')}
-• Tanggal Disetujui: ${new Date().toLocaleString('id-ID')}
-
-💰 **Saldo Anda:**
-• Sebelumnya: Rp ${requestData.previousBalance.toLocaleString()}
-• Sekarang: Rp ${requestData.newBalance.toLocaleString()}
-
-📝 **Catatan Admin:** ${requestData.adminNotes || 'Tidak ada catatan'}
-
-✅ Request saldo Anda telah disetujui dan saldo telah ditambahkan.${footerInfo}`;
+            const messageText = await this.getMessage('notifications.request.approved', agent.phone, params);
+            const message = `${companyHeader}${messageText}${footerInfo}`;
 
             if (agent.phone) {
                 await this.sock.sendMessage(agent.phone + '@s.whatsapp.net', { text: message });
             }
 
-            return { success: true, message: 'Notifikasi berhasil dikirim' };
+            return { success: true, message: await this.getMessage('notifications.success', agent.phone) };
         } catch (error) {
             logger.error('Send request approved notification error:', error);
-            return { success: false, message: 'Gagal mengirim notifikasi' };
+            return { success: false, message: await this.getMessage('notifications.failure', agent.phone) };
         }
     }
 
@@ -261,47 +216,40 @@ class AgentWhatsAppManager {
         try {
             if (!this.sock) {
                 logger.warn('WhatsApp socket not available for request notification');
-                return { success: false, message: 'WhatsApp tidak tersedia' };
+                return { success: false, message: await this.getMessage('whatsapp.notAvailable', agent.phone) };
             }
 
             const settings = getSettingsWithCache();
             const companyHeader = settings.company_header || '📱 ALIJAYA DIGITAL NETWORK 📱\n\n';
             const footerInfo = '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' + (settings.footer_info || 'Powered by Alijaya Digital Network');
 
-            const message = `${companyHeader}❌ **REQUEST SALDO DITOLAK**
+            const params = {
+                amount: requestData.amount.toLocaleString(),
+                requestedAt: new Date(requestData.requestedAt).toLocaleString('id-ID'),
+                rejectedAt: new Date().toLocaleString('id-ID'),
+                rejectReason: requestData.rejectReason,
+                contactPhone: settings.contact_phone || 'Admin'
+            };
 
-📋 **Detail Request:**
-• Jumlah: Rp ${requestData.amount.toLocaleString()}
-• Tanggal Request: ${new Date(requestData.requestedAt).toLocaleString('id-ID')}
-• Tanggal Ditolak: ${new Date().toLocaleString('id-ID')}
-
-📝 **Alasan Penolakan:**
-${requestData.rejectReason}
-
-💡 **Saran:**
-• Pastikan request saldo sesuai dengan kebutuhan bisnis
-• Hubungi admin untuk informasi lebih lanjut
-
-📞 **Bantuan:** Hubungi ${settings.contact_phone || 'Admin'} untuk konsultasi.${footerInfo}`;
+            const messageText = await this.getMessage('notifications.request.rejected', agent.phone, params);
+            const message = `${companyHeader}${messageText}${footerInfo}`;
 
             if (agent.phone) {
                 await this.sock.sendMessage(agent.phone + '@s.whatsapp.net', { text: message });
             }
 
-            return { success: true, message: 'Notifikasi berhasil dikirim' };
+            return { success: true, message: await this.getMessage('notifications.success', agent.phone) };
         } catch (error) {
             logger.error('Send request rejected notification error:', error);
-            return { success: false, message: 'Gagal mengirim notifikasi' };
+            return { success: false, message: await this.getMessage('notifications.failure', agent.phone) };
         }
     }
-
-    // ===== BULK NOTIFICATIONS =====
 
     async sendBulkNotifications(notifications) {
         try {
             if (!this.sock) {
                 logger.warn('WhatsApp socket not available for bulk notifications');
-                return { success: false, message: 'WhatsApp tidak tersedia' };
+                return { success: false, message: await this.getMessage('whatsapp.notAvailable', null) };
             }
 
             let sent = 0;
@@ -312,8 +260,6 @@ ${requestData.rejectReason}
                     if (notification.phone) {
                         await this.sock.sendMessage(notification.phone + '@s.whatsapp.net', { text: notification.message });
                         sent++;
-                        
-                        // Delay between messages to avoid rate limiting
                         await this.delay(1000);
                     }
                 } catch (error) {
@@ -325,30 +271,22 @@ ${requestData.rejectReason}
             return { success: true, sent, failed };
         } catch (error) {
             logger.error('Send bulk notifications error:', error);
-            return { success: false, message: 'Gagal mengirim notifikasi bulk' };
+            return { success: false, message: await this.getMessage('notifications.bulk.failure', null) };
         }
     }
-
-    // ===== UTILITY METHODS =====
 
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // Format phone number for WhatsApp
     formatPhoneNumber(phone) {
         if (!phone) return null;
-        
-        // Remove all non-digit characters
         let cleanPhone = phone.replace(/\D/g, '');
-        
-        // Add country code if not present
         if (cleanPhone.startsWith('0')) {
             cleanPhone = '62' + cleanPhone.substring(1);
         } else if (!cleanPhone.startsWith('62')) {
             cleanPhone = '62' + cleanPhone;
         }
-        
         return cleanPhone;
     }
 }

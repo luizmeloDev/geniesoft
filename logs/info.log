@@ -32233,3 +32233,8 @@
 [2025-10-01T04:27:25.468Z] [INFO] Monitoring PPPoE connections: 173 active connections
 [2025-10-01T04:28:25.337Z] [INFO] Monitoring PPPoE connections: 173 active connections
 [2025-10-01T04:29:25.416Z] [INFO] Monitoring PPPoE connections: 173 active connections
+[2025-10-03T20:32:35.661Z] [INFO] Iniciando script de sincronização com o Typesense...
+[2025-10-03T20:32:35.677Z] [INFO] [TYPESENSE] Iniciando sincronização de clientes...
+[2025-10-03T20:32:35.680Z] [INFO] [TYPESENSE] Sincronização de clientes concluída.
+[2025-10-03T20:32:35.680Z] [INFO] Sincronização concluída com sucesso!
+[2025-10-03T20:32:35.681Z] [INFO] Clientes indexados: undefined

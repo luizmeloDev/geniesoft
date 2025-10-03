@@ -110,5 +110,12 @@
     "wifi_name": "GEMBOK-WIFI",
     "hotspot_url": "http://SERVER_IP",
     "hotspot_ip": "SERVER_IP"
+  },
+  "typesense": {
+    "enabled": true,
+    "host": "localhost",
+    "port": 8108,
+    "protocol": "http",
+    "apiKey": "your-secret-api-key"
   }
 }

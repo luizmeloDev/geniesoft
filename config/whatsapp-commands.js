@@ -21,7 +21,7 @@ class WhatsAppCommands {
     async sendMessage(remoteJid, text) {
         const sock = this.getSock();
         if (!sock) {
-            console.error('Sock instance not set');
+            logger.error('Sock instance not set');
             return false;
         }
 
@@ -29,7 +29,7 @@ class WhatsAppCommands {
             await sock.sendMessage(remoteJid, { text });
             return true;
         } catch (error) {
-            console.error('Error sending message:', error);
+            logger.error('Error sending message:', error);
             return false;
         }
     }
@@ -52,7 +52,7 @@ class WhatsAppCommands {
             // ... existing code ...
             
         } catch (error) {
-            console.error('Error in handleCekStatus:', error);
+            logger.error('Error in handleCekStatus:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat mengecek status:\n${error.message}`);
         }
     }
@@ -71,7 +71,7 @@ class WhatsAppCommands {
             // ... existing code ...
 
         } catch (error) {
-            console.error('Error in handleGantiSSID:', error);
+            logger.error('Error in handleGantiSSID:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat mengubah SSID:\n${error.message}`);
         }
     }
@@ -95,7 +95,7 @@ class WhatsAppCommands {
             // ... existing code ...
 
         } catch (error) {
-            console.error('Error in handleGantiPassword:', error);
+            logger.error('Error in handleGantiPassword:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat mengubah password:\n${error.message}`);
         }
     }
@@ -114,7 +114,7 @@ class WhatsAppCommands {
             // ... existing code ...
 
         } catch (error) {
-            console.error('Error in handleReboot:', error);
+            logger.error('Error in handleReboot:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat reboot:\n${error.message}`);
         }
     }
@@ -133,7 +133,7 @@ class WhatsAppCommands {
             // ... existing code ...
 
         } catch (error) {
-            console.error('Error in handleAddTag:', error);
+            logger.error('Error in handleAddTag:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat menambahkan tag:\n${error.message}`);
         }
     }
@@ -152,7 +152,7 @@ class WhatsAppCommands {
             // ... existing code ...
 
         } catch (error) {
-            console.error('Error in handleRemoveTag:', error);
+            logger.error('Error in handleRemoveTag:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat menghapus tag:\n${error.message}`);
         }
     }
@@ -171,7 +171,7 @@ class WhatsAppCommands {
             // ... existing code ...
 
         } catch (error) {
-            console.error('Error in handleListTags:', error);
+            logger.error('Error in handleListTags:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat mencari tags:\n${error.message}`);
         }
     }
@@ -190,7 +190,7 @@ class WhatsAppCommands {
             // ... existing code ...
 
         } catch (error) {
-            console.error('Error in handleRefresh:', error);
+            logger.error('Error in handleRefresh:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat refresh:\n${error.message}`);
         }
     }
@@ -204,7 +204,7 @@ class WhatsAppCommands {
             // ... existing code ...
 
         } catch (error) {
-            console.error('Error in handleCekAll:', error);
+            logger.error('Error in handleCekAll:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat mencari perangkat:\n${error.message}`);
         }
     }
@@ -226,7 +226,7 @@ class WhatsAppCommands {
                 await this.sendMessage(remoteJid, `❌ *Gagal mengubah header!*\n\nTerjadi kesalahan saat menyimpan ke settings.`);
             }
         } catch (error) {
-            console.error('Error in handleSetHeader:', error);
+            logger.error('Error in handleSetHeader:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat mengubah header:\n${error.message}`);
         }
     }
@@ -252,7 +252,7 @@ class WhatsAppCommands {
             
             await this.sendMessage(remoteJid, message);
         } catch (error) {
-            console.error('Error in handleStatus:', error);
+            logger.error('Error in handleStatus:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat menampilkan status:\n${error.message}`);
         }
     }
@@ -267,7 +267,7 @@ class WhatsAppCommands {
             global.restartRequestedBy = remoteJid;
             
         } catch (error) {
-            console.error('Error in handleRestart:', error);
+            logger.error('Error in handleRestart:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat memproses restart:\n${error.message}`);
         }
     }
@@ -290,7 +290,7 @@ class WhatsAppCommands {
                 await this.sendMessage(remoteJid, `❌ *TIDAK ADA PERMINTAAN RESTART*\n\nTidak ada permintaan restart yang pending.`);
             }
         } catch (error) {
-            console.error('Error in handleConfirmRestart:', error);
+            logger.error('Error in handleConfirmRestart:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat konfirmasi restart:\n${error.message}`);
         }
     }
@@ -316,7 +316,7 @@ class WhatsAppCommands {
             
             await this.sendMessage(remoteJid, message);
         } catch (error) {
-            console.error('Error in handleDebugResource:', error);
+            logger.error('Error in handleDebugResource:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat debug resource:\n${error.message}`);
         }
     }
@@ -365,7 +365,7 @@ class WhatsAppCommands {
             
             await this.sendMessage(remoteJid, message);
         } catch (error) {
-            console.error('Error in handleCheckGroup:', error);
+            logger.error('Error in handleCheckGroup:', error);
             await this.sendMessage(remoteJid, `❌ *ERROR*\n\nTerjadi kesalahan saat check group:\n${error.message}`);
         }
     }

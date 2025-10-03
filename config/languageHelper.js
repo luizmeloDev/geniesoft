@@ -1,4 +1,5 @@
 const i18n = require('i18n');
+const logger = require('./logger');
 
 /**
  * Auxiliar de Idioma para o Bot do WhatsApp
@@ -26,7 +27,7 @@ class LanguageHelper {
       
       return this.defaultLanguage;
     } catch (error) {
-      console.error('Erro ao obter o idioma do usuário:', error);
+      logger.error('Erro ao obter o idioma do usuário:', error);
       return this.defaultLanguage;
     }
   }
@@ -48,7 +49,7 @@ class LanguageHelper {
       
       return true;
     } catch (error) {
-      console.error('Erro ao definir o idioma do usuário:', error);
+      logger.error('Erro ao definir o idioma do usuário:', error);
       return false;
     }
   }
@@ -67,7 +68,7 @@ class LanguageHelper {
       
       return i18n.__(key, params);
     } catch (error) {
-      console.error('Erro ao obter a mensagem localizada:', error);
+      logger.error('Erro ao obter a mensagem localizada:', error);
       i18n.setLocale(this.defaultLanguage);
       return i18n.__(key, params);
     }
@@ -87,7 +88,7 @@ class LanguageHelper {
       
       return i18n.__(key, params);
     } catch (error) {
-      console.error('Erro ao obter mensagem com idioma:', error);
+      logger.error('Erro ao obter mensagem com idioma:', error);
       i18n.setLocale(this.defaultLanguage);
       return i18n.__(key, params);
     }
@@ -129,7 +130,7 @@ class LanguageHelper {
         
         next();
       } catch (error) {
-        console.error('Erro no middleware de idioma:', error);
+        logger.error('Erro no middleware de idioma:', error);
         if (req.setLocale) {
           req.setLocale(this.defaultLanguage);
         }
