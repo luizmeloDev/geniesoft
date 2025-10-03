@@ -62,13 +62,5 @@
     "express"
   ],
   "author": "Development Team",
-  "license": "ISC",
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
-  "bugs": {
-    "url": ""
-  },
-  "homepage": ""
+  "license": "ISC"
 }

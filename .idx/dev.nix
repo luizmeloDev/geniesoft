@@ -8,6 +8,7 @@
     pkgs.gcc
     pkgs.nodePackages.npm
     pkgs.nodePackages.nodemon
+    pkgs.sqlite
   ];
 
   env = {};
@@ -15,19 +16,6 @@
     extensions = [
       "dbaeumer.vscode-eslint"
     ];
-
-    previews = {
-      enable = true;
-      previews = {
-        web = {
-          command = ["npm", "run", "dev"];
-          manager = "web";
-          env = {
-            PORT = "$PORT";
-          };
-        };
-      };
-    };
 
     workspace = {
       onCreate = {

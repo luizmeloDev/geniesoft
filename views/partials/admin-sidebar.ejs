@@ -4,7 +4,7 @@
         <img src="/img/<%= typeof settings !== 'undefined' && settings.logo_filename ? settings.logo_filename : 'logo.png' %>?ts=<%= Date.now() %>" alt="Logo" style="max-width:120px;max-height:60px;">
     </div>
     <a href="/admin/dashboard" class="<%= typeof page !== 'undefined' && page === 'dashboard' ? 'active' : '' %>" style="text-align: left;"><i class="bi bi-house"></i> Painel</a>
-    <a href="/admin/billing/dashboard" class="<%= typeof page !== 'undefined' && page === 'billing' ? 'active' : '' %>" style="text-align: left;"><i class="bi bi-receipt"></i> Faturamento</a>
+    <a href="/admin/billing" class="<%= typeof page !== 'undefined' && page === 'billing' ? 'active' : '' %>" style="text-align: left;"><i class="bi bi-receipt"></i> Faturamento</a>
     <a href="/admin/installations" class="<%= typeof page !== 'undefined' && page === 'installations' ? 'active' : '' %>" style="text-align: left;"><i class="bi bi-tools"></i> Ordens de Serviço</a>
     <a href="/admin/technicians" class="<%= typeof page !== 'undefined' && page === 'technicians' ? 'active' : '' %>" style="text-align: left;"><i class="bi bi-people-fill"></i> Gerenciar Técnicos</a>
     <a href="/admin/cable-network/odp" class="<%= typeof page !== 'undefined' && page === 'cable-network-odp' ? 'active' : '' %>" style="text-align: left;"><i class="bi bi-broadcast"></i> Gerenciamento de ODP</a>

@@ -1,180 +1,117 @@
-
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Billing - Geniesoft</title>
+    <title>Dashboard Billing - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <link href="/css/admin-mobile.css" rel="stylesheet">
-    <style>
-        body { background-color: #f0f2f5; }
-        .main-content { padding-top: 1.5rem; }
-        .card {
-            border: none;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
-        }
-        .stat-card .card-body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-        }
-        .stat-card h5 { font-size: 1rem; color: #6c757d; margin-bottom: 0.5rem; }
-        .stat-card h3 { font-size: 2rem; font-weight: 700; }
-        .chart-card .card-header, .table-card .card-header {
-            background-color: transparent;
-            border-bottom: 1px solid #dee2e6;
-            font-weight: 600;
-        }
-        .table-responsive { max-height: 400px; }
-    </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <%- include('../../partials/billing-sidebar') %>
+    <%- include('../../partials/admin-responsive-sidebar', { page: 'billing-dashboard', settings: settings }) %>
+    <div class="main-content">
+        <%- include('../../partials/admin-mobile-navbar', { pageTitle: 'Dashboard Billing' }) %>
+        <main class="container-fluid">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Dashboard Billing</h1>
+            </div>
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2"><i class="bx bx-bar-chart-alt-2"></i> Dashboard Billing</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <a href="/admin/billing/invoices-by-type" class="btn btn-sm btn-outline-secondary me-2">
-                            <i class="bx bx-receipt"></i> Faturas por Tipo
-                        </a>
-                        <a href="/admin/billing/payment-settings" class="btn btn-sm btn-outline-primary">
-                            <i class="bx bx-cog"></i> Configurações
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Cartões de Estatísticas -->
-                <div class="row">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card stat-card text-bg-light">
-                            <div class="card-body">
-                                <h5>Total de Clientes</h5>
-                                <h3 class="text-primary"><%= stats.total_customers || 0 %></h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card stat-card text-bg-light">
-                            <div class="card-body">
-                                <h5>Receita Mensal</h5>
-                                <h3 class="text-success">R$ <%= (stats.monthly_revenue || 0).toLocaleString('pt-BR') %></h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card stat-card text-bg-light">
-                            <div class="card-body">
-                                <h5>Faturas em Aberto</h5>
-                                <h3 class="text-danger"><%= stats.unpaid_invoices || 0 %></h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card stat-card text-bg-light">
-                            <div class="card-body">
-                                <h5>Receita de Vouchers</h5>
-                                <h3 class="text-info">R$ <%= (stats.voucher_revenue || 0).toLocaleString('pt-BR') %></h3>
-                            </div>
+            <!-- Stat Cards -->
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card text-bg-light">
+                        <div class="card-body">
+                            <h5>Total Pelanggan</h5>
+                            <h3 class="text-primary"><%= stats.total_customers || 0 %></h3>
                         </div>
                     </div>
                 </div>
-
-                <!-- Gráficos e Tabelas -->
-                <div class="row">
-                    <div class="col-lg-4">
-                        <div class="card chart-card">
-                            <div class="card-header">Status das Faturas Mensais</div>
-                            <div class="card-body d-flex justify-content-center">
-                                <canvas id="monthlyInvoiceChart" style="max-width: 280px; max-height: 280px;"></canvas>
-                            </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card text-bg-light">
+                        <div class="card-body">
+                            <h5>Pendapatan Bulanan</h5>
+                            <h3 class="text-success">Rp <%= (stats.monthly_revenue || 0).toLocaleString('id-ID') %></h3>
                         </div>
                     </div>
-                    <div class="col-lg-8">
-                        <div class="card table-card">
-                            <div class="card-header">Faturas Recentes</div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-nowrap mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>Nº Fatura</th>
-                                                <th>Cliente</th>
-                                                <th>Valor</th>
-                                                <th>Status</th>
-                                                <th>Vencimento</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% if (recentInvoices && recentInvoices.length > 0) { %>
-                                                <% recentInvoices.forEach(function(invoice) { %>
-                                                    <tr>
-                                                        <td><a href="/admin/billing/invoices/<%= invoice.id %>"><%= invoice.invoice_number %></a></td>
-                                                        <td><%= invoice.customer_name %></td>
-                                                        <td>R$ <%= parseFloat(invoice.amount).toLocaleString('pt-BR') %></td>
-                                                        <td>
-                                                            <% if (invoice.status === 'paid') { %><span class="badge bg-success">Pago</span><% } else { %><span class="badge bg-warning">Pendente</span><% } %>
-                                                        </td>
-                                                        <td><%= new Date(invoice.due_date).toLocaleDateString('pt-BR') %></td>
-                                                    </tr>
-                                                <% }); %>
-                                            <% } else { %>
-                                                <tr><td colspan="5" class="text-center py-4">Nenhuma fatura recente.</td></tr>
-                                            <% } %>
-                                        </tbody>
-                                    </table>
-                                </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card text-bg-light">
+                        <div class="card-body">
+                            <h5>Tagihan Belum Dibayar</h5>
+                            <h3 class="text-danger"><%= stats.unpaid_invoices || 0 %></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card text-bg-light">
+                        <div class="card-body">
+                            <h5>Pendapatan Voucher</h5>
+                            <h3 class="text-info">Rp <%= (stats.voucher_revenue || 0).toLocaleString('id-ID') %></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Tables -->
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">Status Tagihan Bulanan</div>
+                        <div class="card-body d-flex justify-content-center">
+                            <canvas id="monthlyInvoiceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">Tagihan Terbaru</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>No. Tagihan</th>
+                                            <th>Pelanggan</th>
+                                            <th>Jumlah</th>
+                                            <th>Status</th>
+                                            <th>Jatuh Tempo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Recent invoice data -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const donutChartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: {
-                    legend: { position: 'bottom', labels: { padding: 20 } },
-                    tooltip: { mode: 'index', intersect: false }
-                }
-            };
-
-            // Gráfico de Faturas Mensais
             const monthlyCtx = document.getElementById('monthlyInvoiceChart');
             if (monthlyCtx) {
-                // Prepara os dados do gráfico do lado do servidor para evitar erros de linter no cliente
                 const monthlyInvoiceData = <%- JSON.stringify([
                     (stats.paid_monthly_invoices || 0),
                     (stats.unpaid_monthly_invoices || 0)
-                ]) %>;
+                ], null, '') %>;
 
                 new Chart(monthlyCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Pagas', 'Pendentes'],
+                        labels: ['Lunas', 'Belum Lunas'],
                         datasets: [{
-                            label: 'Faturas Mensais',
+                            label: 'Tagihan Bulanan',
                             data: monthlyInvoiceData,
                             backgroundColor: ['#198754', '#ffc107'],
-                            borderColor: '#f0f2f5',
-                            borderWidth: 4
                         }]
-                    },
-                    options: donutChartOptions
+                    }
                 });
             }
         });

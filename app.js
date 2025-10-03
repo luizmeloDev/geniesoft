@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
+const i18n = require('i18n');
 const logger = require('./config/logger');
 const whatsapp = require('./config/whatsapp');
 const { monitorPPPoEConnections } = require('./config/mikrotik');
@@ -8,13 +9,22 @@ const fs = require('fs');
 const session = require('express-session');
 const { getSetting } = require('./config/settingsManager');
 
-// Import invoice scheduler
+i18n.configure({
+  locales: ['en', 'id', 'pt'],
+  directory: path.join(__dirname, 'locales'),
+  defaultLocale: 'pt',
+  cookie: 'i18n',
+  autoReload: true,
+  objectNotation: true,
+});
+
+// Importar agendador de faturas
 const invoiceScheduler = require('./config/scheduler');
 
-// Import auto GenieACS setup untuk development (DISABLED - menggunakan web interface)
+// Importar configuração automática do GenieACS para desenvolvimento (DESABILITADO - usando interface web)
 // const { autoGenieACSSetup } = require('./config/autoGenieACSSetup');
 
-// Import technician sync service for hot-reload
+// Importar serviço de sincronização de técnicos para hot-reload
 const technicianSync = {
     start() {
         const fs = require('fs');
@@ -30,78 +40,78 @@ const technicianSync = {
                     const phone = settings[k];
                     if (phone) {
                         db.run('INSERT OR IGNORE INTO technicians (phone, name, role, is_active, created_at) VALUES (?, ?, "technician", 1, datetime("now"))', 
-                            [phone, `Teknisi ${phone.slice(-4)}`]);
+                            [phone, `Tecnico ${phone.slice(-4)}`]);
                     }
                 });
-                console.log('📱 Technician numbers synced from settings.json');
+                console.log('📱 Números de técnicos sincronizados a partir de settings.json');
             } catch (e) {
-                console.error('Sync error:', e.message);
+                console.error('Erro de sincronização:', e.message);
             }
         };
         
         fs.watchFile('settings.json', { interval: 1000 }, sync);
-        sync(); // Initial sync
-        console.log('🔄 Technician auto-sync enabled - settings.json changes will auto-update technicians');
+        sync(); // Sincronização inicial
+        console.log('🔄 Sincronização automática de técnicos ativada - alterações em settings.json atualizarão automaticamente os técnicos');
     }
 };
 
-// Start technician sync service
+// Iniciar serviço de sincronização de técnicos
 technicianSync.start();
 
-// Inisialisasi aplikasi Express
+// Inicializar aplicação Express
 const app = express();
 
-// Import route adminAuth
+// Importar rota adminAuth
 const { router: adminAuthRouter, adminAuth } = require('./routes/adminAuth');
 
-// Import middleware untuk access control (harus diimport sebelum digunakan)
+// Importar middleware para controle de acesso (deve ser importado antes de usar)
 const { blockTechnicianAccess } = require('./middleware/technicianAccessControl');
 
-// Middleware dasar - Optimized
+// Middleware básico - Otimizado
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files dengan cache
+// Arquivos estáticos com cache
 app.use('/public', express.static(path.join(__dirname, 'public'), {
-  maxAge: '1h', // Cache static files untuk 1 jam
+  maxAge: '1h', // Cache de arquivos estáticos por 1 hora
   etag: true
 }));
 app.use(session({
-  secret: 'rahasia-portal-anda', // Ganti dengan string random yang aman
+  secret: 'segredo-do-seu-portal', // Substitua por uma string aleatória segura
   resave: false,
-  saveUninitialized: false, // Optimized: tidak save session kosong
+  saveUninitialized: false, // Otimizado: não salva sessões vazias
   cookie: { 
     secure: false,
-    maxAge: 24 * 60 * 60 * 1000, // 24 jam
+    maxAge: 24 * 60 * 60 * 1000, // 24 horas
     httpOnly: true
   },
-  name: 'admin_session' // Custom session name
+  name: 'admin_session' // Nome da sessão personalizada
 }));
 
-// Route khusus untuk login mobile (harus sebelum semua route admin)
+// Rota especial para login móvel (deve vir antes de todas as rotas de admin)
 app.get('/admin/login/mobile', (req, res) => {
     try {
         const { getSettingsWithCache } = require('./config/settingsManager');
         const appSettings = getSettingsWithCache();
         
-        console.log('🔍 Rendering mobile login page...');
+        console.log('🔍 Renderizando página de login móvel...');
         res.render('admin/mobile-login', { 
             error: null,
             success: null,
             appSettings: appSettings
         });
     } catch (error) {
-        console.error('❌ Error rendering mobile login:', error);
-        res.status(500).send('Error loading mobile login page');
+        console.error('❌ Erro ao renderizar login móvel:', error);
+        res.status(500).send('Erro ao carregar a página de login móvel');
     }
 });
 
-// Test route untuk debugging
+// Rota de teste para depuração
 app.get('/admin/test', (req, res) => {
-    res.json({ message: 'Admin routes working!', timestamp: new Date().toISOString() });
+    res.json({ message: 'Rotas de admin funcionando!', timestamp: new Date().toISOString() });
 });
 
-// POST untuk login mobile
+// POST para login móvel
 app.post('/admin/login/mobile', async (req, res) => {
     try {
         const { username, password, remember } = req.body;
@@ -114,7 +124,7 @@ app.post('/admin/login/mobile', async (req, res) => {
 
         if (!username || !password) {
             return res.render('admin/mobile-login', { 
-                error: 'Username dan password harus diisi!',
+                error: 'Nome de usuário e senha devem ser preenchidos!',
                 success: null,
                 appSettings: { companyHeader: 'ISP Monitor' }
             });
@@ -125,140 +135,140 @@ app.post('/admin/login/mobile', async (req, res) => {
             req.session.adminUsername = username;
 
             if (remember) {
-                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias
             }
 
-            // Redirect to mobile dashboard
+            // Redirecionar para o painel móvel
             res.redirect('/admin/billing/mobile');
         } else {
             res.render('admin/mobile-login', { 
-                error: 'Username atau password salah!',
+                error: 'Nome de usuário ou senha incorretos!',
                 success: null,
                 appSettings: { companyHeader: 'ISP Monitor' }
             });
         }
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Erro de login:', error);
         res.render('admin/mobile-login', { 
-            error: 'Terjadi kesalahan saat login!',
+            error: 'Ocorreu um erro durante o login!',
             success: null,
             appSettings: { companyHeader: 'ISP Monitor' }
         });
     }
 });
 
-// Redirect untuk mobile login
+// Redirecionamento para login móvel
 app.get('/admin/mobile', (req, res) => {
     res.redirect('/admin/login/mobile');
 });
 
-// Gunakan route adminAuth untuk /admin
+// Usar a rota adminAuth para /admin
 app.use('/admin', adminAuthRouter);
 
-// Import dan gunakan route adminDashboard
+// Importar e usar a rota adminDashboard
 const adminDashboardRouter = require('./routes/adminDashboard');
 app.use('/admin', blockTechnicianAccess, adminDashboardRouter);
 
-// Import dan gunakan route adminGenieacs
+// Importar e usar a rota adminGenieacs
 const adminGenieacsRouter = require('./routes/adminGenieacs');
 app.use('/admin', blockTechnicianAccess, adminGenieacsRouter);
 
-// Import dan gunakan route adminMappingNew
+// Importar e usar a rota adminMappingNew
 const adminMappingNewRouter = require('./routes/adminMappingNew');
 app.use('/admin', blockTechnicianAccess, adminMappingNewRouter);
 
-// Import dan gunakan route adminMikrotik
+// Importar e usar a rota adminMikrotik
 const adminMikrotikRouter = require('./routes/adminMikrotik');
 app.use('/admin', blockTechnicianAccess, adminMikrotikRouter);
 
-// Import dan gunakan route adminHotspot
+// Importar e usar a rota adminHotspot
 const adminHotspotRouter = require('./routes/adminHotspot');
 app.use('/admin/hotspot', blockTechnicianAccess, adminHotspotRouter);
 
-// Import dan gunakan route adminSetting
+// Importar e usar a rota adminSetting
 const { router: adminSettingRouter } = require('./routes/adminSetting');
 app.use('/admin/settings', blockTechnicianAccess, adminAuth, adminSettingRouter);
 
-// Import dan gunakan route configValidation
+// Importar e usar a rota configValidation
 const configValidationRouter = require('./routes/configValidation');
 app.use('/admin/config', blockTechnicianAccess, configValidationRouter);
 
-// Import dan gunakan route adminTroubleReport
+// Importar e usar a rota adminTroubleReport
 const adminTroubleReportRouter = require('./routes/adminTroubleReport');
 app.use('/admin/trouble', blockTechnicianAccess, adminAuth, adminTroubleReportRouter);
 
-// Import dan gunakan route adminBilling (dipindah ke bawah agar tidak mengganggu route login)
+// Importar e usar a rota adminBilling (movida para baixo para não interferir na rota de login)
 const adminBillingRouter = require('./routes/adminBilling');
 app.use('/admin/billing', blockTechnicianAccess, adminAuth, adminBillingRouter);
 
-// Import dan gunakan route adminInstallationJobs
+// Importar e usar a rota adminInstallationJobs
 const adminInstallationJobsRouter = require('./routes/adminInstallationJobs');
 app.use('/admin/installations', blockTechnicianAccess, adminAuth, adminInstallationJobsRouter);
 
-// Import dan gunakan route adminTechnicians
+// Importar e usar a rota adminTechnicians
 const adminTechniciansRouter = require('./routes/adminTechnicians');
 app.use('/admin/technicians', blockTechnicianAccess, adminAuth, adminTechniciansRouter);
 
-// Import dan gunakan route agentAuth
+// Importar e usar a rota agentAuth
 const { router: agentAuthRouter } = require('./routes/agentAuth');
 app.use('/agent', agentAuthRouter);
 
-// Import dan gunakan route agent
+// Importar e usar a rota agent
 const agentRouter = require('./routes/agent');
 app.use('/agent', agentRouter);
 
-// Import dan gunakan route adminAgents
+// Importar e usar a rota adminAgents
 const adminAgentsRouter = require('./routes/adminAgents');
 app.use('/admin', blockTechnicianAccess, adminAuth, adminAgentsRouter);
 
-// Import dan gunakan route adminVoucherPricing
+// Importar e usar a rota adminVoucherPricing
 const adminVoucherPricingRouter = require('./routes/adminVoucherPricing');
 app.use('/admin/voucher-pricing', blockTechnicianAccess, adminAuth, adminVoucherPricingRouter);
 
-// Import dan gunakan route adminCableNetwork
+// Importar e usar a rota adminCableNetwork
 const adminCableNetworkRouter = require('./routes/adminCableNetwork');
 app.use('/admin/cable-network', blockTechnicianAccess, adminAuth, adminCableNetworkRouter);
 
-// Import dan gunakan route adminCollectors
+// Importar e usar a rota adminCollectors
 const adminCollectorsRouter = require('./routes/adminCollectors');
 app.use('/admin/collectors', blockTechnicianAccess, adminCollectorsRouter);
 
-// Import dan gunakan route cache management
+// Importar e usar a rota de gerenciamento de cache
 const cacheManagementRouter = require('./routes/cacheManagement');
 app.use('/admin/cache', blockTechnicianAccess, cacheManagementRouter);
 
-// Import dan gunakan route payment
+// Importar e usar a rota de pagamento
 const paymentRouter = require('./routes/payment');
 app.use('/payment', paymentRouter);
 
-// Import dan gunakan route testTroubleReport untuk debugging
+// Importar e usar a rota testTroubleReport para depuração
 const testTroubleReportRouter = require('./routes/testTroubleReport');
 app.use('/test/trouble', testTroubleReportRouter);
 
-// Import dan gunakan route trouble report untuk pelanggan
+// Importar e usar a rota de relatório de problemas para clientes
 const troubleReportRouter = require('./routes/troubleReport');
 app.use('/customer/trouble', troubleReportRouter);
 
-// Import dan gunakan route voucher publik
+// Importar e usar a rota pública de vouchers
 const { router: publicVoucherRouter } = require('./routes/publicVoucher');
 app.use('/voucher', publicVoucherRouter);
 
-// Import dan gunakan route public tools
+// Importar e usar a rota de ferramentas públicas
 const publicToolsRouter = require('./routes/publicTools');
 app.use('/tools', publicToolsRouter);
 
-// Tambahkan webhook endpoint untuk voucher payment
+// Adicionar endpoint de webhook para pagamento de vouchers
 app.use('/webhook/voucher', publicVoucherRouter);
 
-// Import dan gunakan route API dashboard traffic
+// Importar e usar a rota da API do painel de tráfego
 const apiDashboardRouter = require('./routes/apiDashboard');
 app.use('/api', apiDashboardRouter);
 
-// Konstanta
+// Constantes
 const VERSION = '1.0.0';
 
-// Variabel global untuk menyimpan status koneksi WhatsApp
-// (Tetap, karena status runtime)
+// Variável global para armazenar o status da conexão do WhatsApp
+// (Mantido, pois é um status de tempo de execução)
 global.whatsappStatus = {
     connected: false,
     qrCode: null,
@@ -267,15 +277,15 @@ global.whatsappStatus = {
     status: 'disconnected'
 };
 
-// HAPUS global.appSettings
-// Pastikan direktori sesi WhatsApp ada
+// REMOVER global.appSettings
+// Garantir que o diretório da sessão do WhatsApp exista
 const sessionDir = getSetting('whatsapp_session_path', './whatsapp-session');
 if (!fs.existsSync(sessionDir)) {
     fs.mkdirSync(sessionDir, { recursive: true });
-    logger.info(`Direktori sesi WhatsApp dibuat: ${sessionDir}`);
+    logger.info(`Diretório da sessão do WhatsApp criado: ${sessionDir}`);
 }
 
-// Route untuk health check
+// Rota para verificação de saúde
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
@@ -284,7 +294,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Route untuk mendapatkan status WhatsApp
+// Rota para obter o status do WhatsApp
 app.get('/whatsapp/status', (req, res) => {
     res.json({
         status: global.whatsappStatus.status,
@@ -294,62 +304,62 @@ app.get('/whatsapp/status', (req, res) => {
     });
 });
 
-// Redirect root ke portal pelanggan
+// Redirecionar a raiz para o portal do cliente
 app.get('/', (req, res) => {
   res.redirect('/customer/login');
 });
 
-// Import PPPoE monitoring modules
+// Importar módulos de monitoramento PPPoE
 const pppoeMonitor = require('./config/pppoe-monitor');
 const pppoeCommands = require('./config/pppoe-commands');
 
-// Import GenieACS commands module
+// Importar módulo de comandos GenieACS
 const genieacsCommands = require('./config/genieacs-commands');
 
-// Import MikroTik commands module
+// Importar módulo de comandos MikroTik
 const mikrotikCommands = require('./config/mikrotik-commands');
 
-// Import RX Power Monitor module
+// Importar módulo RX Power Monitor
 const rxPowerMonitor = require('./config/rxPowerMonitor');
 
-// Tambahkan view engine dan static
+// Adicionar view engine e estáticos
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
-// Placeholder icons to avoid 404 before real assets are uploaded
+// Ícones de placeholder para evitar 404 antes que os ativos reais sejam carregados
 try {
   const staticIcons = require('./routes/staticIcons');
   app.use('/', staticIcons);
 } catch (e) {
-  logger.warn('staticIcons route not loaded:', e.message);
+  logger.warn('Rota staticIcons não carregada:', e.message);
 }
-// Mount customer portal
+// Montar portal do cliente
 const customerPortal = require('./routes/customerPortal');
 app.use('/customer', customerPortal);
 
-// Mount customer billing portal
+// Montar portal de faturamento do cliente
 const customerBillingRouter = require('./routes/customerBilling');
 app.use('/customer/billing', customerBillingRouter);
 
-// Import dan gunakan route teknisi portal
+// Importar e usar a rota do portal de técnicos
 const { router: technicianAuthRouter } = require('./routes/technicianAuth');
 app.use('/technician', technicianAuthRouter);
-// Alias Bahasa Indonesia untuk teknisi
-app.use('/teknisi', technicianAuthRouter);
+// Alias em português para técnico
+app.use('/tecnico', technicianAuthRouter);
 
-// Import dan gunakan route dashboard teknisi
+// Importar e usar a rota do painel de técnicos
 const technicianDashboardRouter = require('./routes/technicianDashboard');
 app.use('/technician', technicianDashboardRouter);
-// Alias Bahasa Indonesia untuk dashboard teknisi
-app.use('/teknisi', technicianDashboardRouter);
+// Alias em português para painel de técnico
+app.use('/tecnico', technicianDashboardRouter);
 
-// Import dan gunakan route technician cable network
+// Importar e usar a rota da rede de cabos do técnico
 const technicianCableNetworkRouter = require('./routes/technicianCableNetwork');
 app.use('/technician', technicianCableNetworkRouter);
-// Alias Bahasa Indonesia untuk technician cable network
-app.use('/teknisi', technicianCableNetworkRouter);
+// Alias em português para a rede de cabos do técnico
+app.use('/tecnico', technicianCableNetworkRouter);
 
-// Halaman Isolir - menampilkan info dari settings.json dan auto-resolve nama
+// Página de Isolamento - exibe informações de settings.json e resolve o nome automaticamente
 app.get('/isolir', async (req, res) => {
     try {
         const { getSettingsWithCache, getSetting } = require('./config/settingsManager');
@@ -357,13 +367,13 @@ app.get('/isolir', async (req, res) => {
 
         const settings = getSettingsWithCache();
         const companyHeader = getSetting('company_header', 'GEMBOK');
-        const adminWA = getSetting('admins.0', '6281234567890'); // format 62...
+        const adminWA = getSetting('admins.0', '6281234567890'); // formato 62...
         const adminDisplay = adminWA && adminWA.startsWith('62') ? ('0' + adminWA.slice(2)) : (adminWA || '-');
 
-        // Auto-resolve nama pelanggan: urutan prioritas -> query.nama -> PPPoE username -> session -> '-' 
-        let customerName = (req.query.nama || req.query.name || '').toString().trim();
+        // Resolver nome do cliente automaticamente: ordem de prioridade -> query.nome -> nome de usuário PPPoE -> sessão -> '-' 
+        let customerName = (req.query.nome || req.query.name || '').toString().trim();
         if (!customerName) {
-            // Coba dari session customer_username
+            // Tentar a partir do nome de usuário do cliente da sessão
             const sessionUsername = req.session && (req.session.customer_username || req.session.username);
             if (sessionUsername) {
                 try {
@@ -373,7 +383,7 @@ app.get('/isolir', async (req, res) => {
             }
         }
         if (!customerName) {
-            // Coba dari PPPoE username (query pppoe / username)
+            // Tentar a partir do nome de usuário PPPoE (query pppoe / username)
             const qUser = (req.query.pppoe || req.query.username || '').toString().trim();
             if (qUser) {
                 try {
@@ -383,7 +393,7 @@ app.get('/isolir', async (req, res) => {
             }
         }
         if (!customerName) {
-            // Coba dari nomor HP (query phone) untuk fallback
+            // Tentar a partir do número de telefone (query phone) como fallback
             const qPhone = (req.query.phone || req.query.nohp || '').toString().trim();
             if (qPhone) {
                 try {
@@ -392,13 +402,13 @@ app.get('/isolir', async (req, res) => {
                 } catch {}
             }
         }
-        if (!customerName) customerName = 'Pelanggan';
+        if (!customerName) customerName = 'Cliente';
 
-        // Logo path dari settings.json (served via /public or /storage pattern)
+        // Caminho do logotipo de settings.json (servido via padrão /public ou /storage)
         const logoFile = settings.logo_filename || 'logo.png';
         const logoPath = `/public/img/${logoFile}`;
 
-        // Payment accounts from settings.json (bank transfer & cash)
+        // Contas de pagamento de settings.json (transferência bancária e dinheiro)
         const paymentAccounts = settings.payment_accounts || {};
 
         res.render('isolir', {
@@ -411,153 +421,153 @@ app.get('/isolir', async (req, res) => {
             encodeURIComponent
         });
     } catch (error) {
-        console.error('Error rendering isolir page:', error);
-        res.status(500).send('Gagal memuat halaman isolir');
+        console.error('Erro ao renderizar a página de isolamento:', error);
+        res.status(500).send('Falha ao carregar a página de isolamento');
     }
 });
 
-// Import dan gunakan route tukang tagih (collector)
+// Importar e usar a rota do cobrador
 const { router: collectorAuthRouter } = require('./routes/collectorAuth');
 app.use('/collector', collectorAuthRouter);
 
-// Import dan gunakan route dashboard tukang tagih
+// Importar e usar a rota do painel do cobrador
 const collectorDashboardRouter = require('./routes/collectorDashboard');
 app.use('/collector', collectorDashboardRouter);
 
-// Inisialisasi WhatsApp dan PPPoE monitoring
+// Inicializar monitoramento do WhatsApp e PPPoE
 try {
     whatsapp.connectToWhatsApp().then(sock => {
         if (sock) {
-            // Set sock instance untuk whatsapp
+            // Definir instância do sock para o whatsapp
             whatsapp.setSock(sock);
 
-            // Set sock instance untuk PPPoE monitoring
+            // Definir instância do sock para o monitoramento PPPoE
             pppoeMonitor.setSock(sock);
 
-            // Initialize Agent WhatsApp Commands
+            // Inicializar Comandos do WhatsApp do Agente
             const AgentWhatsAppIntegration = require('./config/agentWhatsAppIntegration');
             const agentWhatsApp = new AgentWhatsAppIntegration(whatsapp);
             agentWhatsApp.initialize();
             
-            console.log('🤖 Agent WhatsApp Commands initialized');
+            console.log('🤖 Comandos do WhatsApp do Agente inicializados');
             pppoeCommands.setSock(sock);
 
-            // Set sock instance untuk GenieACS commands
+            // Definir instância do sock para os comandos GenieACS
             genieacsCommands.setSock(sock);
 
-            // Set sock instance untuk MikroTik commands
+            // Definir instância do sock para os comandos MikroTik
             mikrotikCommands.setSock(sock);
 
-            // Set sock instance untuk RX Power Monitor
+            // Definir instância do sock para o RX Power Monitor
             rxPowerMonitor.setSock(sock);
 
-            // Set sock instance untuk trouble report
+            // Definir instância do sock para o relatório de problemas
             const troubleReport = require('./config/troubleReport');
             troubleReport.setSockInstance(sock);
 
-            logger.info('WhatsApp connected successfully');
+            logger.info('WhatsApp conectado com sucesso');
 
-            // Initialize PPPoE monitoring jika MikroTik dikonfigurasi
+            // Inicializar monitoramento PPPoE se o MikroTik estiver configurado
             if (getSetting('mikrotik_host') && getSetting('mikrotik_user') && getSetting('mikrotik_password')) {
                 pppoeMonitor.initializePPPoEMonitoring().then(() => {
-                    logger.info('PPPoE monitoring initialized');
+                    logger.info('Monitoramento PPPoE inicializado');
                 }).catch(err => {
-                    logger.error('Error initializing PPPoE monitoring:', err);
+                    logger.error('Erro ao inicializar o monitoramento PPPoE:', err);
                 });
             }
 
-            // Initialize Interval Manager (replaces individual monitoring systems)
+            // Inicializar Gerenciador de Intervalos (substitui sistemas de monitoramento individuais)
             try {
                 const intervalManager = require('./config/intervalManager');
                 intervalManager.initialize();
-                logger.info('Interval Manager initialized with all monitoring systems');
+                logger.info('Gerenciador de Intervalos inicializado com todos os sistemas de monitoramento');
             } catch (err) {
-                logger.error('Error initializing Interval Manager:', err);
+                logger.error('Erro ao inicializar o Gerenciador de Intervalos:', err);
             }
         }
     }).catch(err => {
-        logger.error('Error connecting to WhatsApp:', err);
+        logger.error('Erro ao conectar ao WhatsApp:', err);
     });
 
-    // Mulai monitoring PPPoE lama jika dikonfigurasi (fallback)
+    // Iniciar monitoramento PPPoE antigo se configurado (fallback)
     if (getSetting('mikrotik_host') && getSetting('mikrotik_user') && getSetting('mikrotik_password')) {
         monitorPPPoEConnections().catch(err => {
-            logger.error('Error starting legacy PPPoE monitoring:', err);
+            logger.error('Erro ao iniciar o monitoramento PPPoE legado:', err);
         });
     }
 } catch (error) {
-    logger.error('Error initializing services:', error);
+    logger.error('Erro ao inicializar os serviços:', error);
 }
 
-// Tambahkan delay yang lebih lama untuk reconnect WhatsApp
-const RECONNECT_DELAY = 30000; // 30 detik
+// Adicionar um atraso maior para reconectar ao WhatsApp
+const RECONNECT_DELAY = 30000; // 30 segundos
 
-// Fungsi untuk memulai server hanya pada port yang dikonfigurasi di settings.json
+// Função para iniciar o servidor apenas na porta configurada em settings.json
 function startServer(portToUse) {
-    // Pastikan port adalah number
+    // Garantir que a porta seja um número
     const port = parseInt(portToUse);
     if (isNaN(port) || port < 1 || port > 65535) {
-        logger.error(`Port tidak valid: ${portToUse}`);
+        logger.error(`Porta inválida: ${portToUse}`);
         process.exit(1);
     }
     
-    logger.info(`Memulai server pada port yang dikonfigurasi: ${port}`);
-    logger.info(`Port diambil dari settings.json - tidak ada fallback ke port alternatif`);
+    logger.info(`Iniciando o servidor na porta configurada: ${port}`);
+    logger.info(`A porta foi obtida de settings.json - não há fallback para portas alternativas`);
     
-    // Hanya gunakan port dari settings.json, tidak ada fallback
+    // Usar apenas a porta de settings.json, sem fallback
     try {
         const server = app.listen(port, () => {
-            logger.info(`✅ Server berhasil berjalan pada port ${port}`);
-            logger.info(`🌐 Web Portal tersedia di: http://localhost:${port}`);
-            logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-            // Update global.appSettings.port dengan port yang berhasil digunakan
-            // global.appSettings.port = port.toString(); // Hapus ini
+            logger.info(`✅ Servidor iniciado com sucesso na porta ${port}`);
+            logger.info(`🌐 Portal Web disponível em: http://localhost:${port}`);
+            logger.info(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
+            // Atualizar global.appSettings.port com a porta usada com sucesso
+            // global.appSettings.port = port.toString(); // Remover isso
         }).on('error', (err) => {
             if (err.code === 'EADDRINUSE') {
-                logger.error(`❌ ERROR: Port ${port} sudah digunakan oleh aplikasi lain!`);
-                logger.error(`💡 Solusi: Hentikan aplikasi yang menggunakan port ${port} atau ubah port di settings.json`);
-                logger.error(`🔍 Cek aplikasi yang menggunakan port: netstat -ano | findstr :${port}`);
+                logger.error(`❌ ERRO: A porta ${port} já está em uso por outra aplicação!`);
+                logger.error(`💡 Solução: Pare a aplicação que está usando a porta ${port} ou altere a porta em settings.json`);
+                logger.error(`🔍 Verifique a aplicação que está usando a porta: netstat -ano | findstr :${port}`);
             } else {
-                logger.error('❌ Error starting server:', err.message);
+                logger.error('❌ Erro ao iniciar o servidor:', err.message);
             }
             process.exit(1);
         });
     } catch (error) {
-        logger.error(`❌ Terjadi kesalahan saat memulai server:`, error.message);
+        logger.error(`❌ Ocorreu um erro ao iniciar o servidor:`, error.message);
         process.exit(1);
     }
 }
 
-// Mulai server dengan port dari settings.json
+// Iniciar o servidor com a porta de settings.json
 const port = getSetting('server_port', 4555);
-logger.info(`Attempting to start server on configured port: ${port}`);
+logger.info(`Tentando iniciar o servidor na porta configurada: ${port}`);
 
-// Mulai server dengan port dari konfigurasi
+// Iniciar o servidor com a porta da configuração
 startServer(port);
 
-// Auto setup GenieACS DNS untuk development (DISABLED - menggunakan web interface)
+// Configuração automática do DNS GenieACS para desenvolvimento (DESABILITADO - usando interface web)
 // setTimeout(async () => {
 //     try {
-//         logger.info('🚀 Memulai auto setup GenieACS DNS untuk development...');
+//         logger.info('🚀 Iniciando configuração automática do DNS GenieACS para desenvolvimento...');
 //         const result = await autoGenieACSSetup.runAutoSetup();
 //         
 //         if (result.success) {
-//             logger.info('✅ Auto GenieACS DNS setup berhasil');
+//             logger.info('✅ Configuração automática do DNS GenieACS bem-sucedida');
 //             if (result.data) {
-//                 logger.info(`📋 IP Server: ${result.data.serverIP}`);
-//                 logger.info(`📋 GenieACS URL: ${result.data.genieacsUrl}`);
-//                 logger.info(`📋 Script Mikrotik: ${result.data.mikrotikScript}`);
+//                 logger.info(`📋 IP do Servidor: ${result.data.serverIP}`);
+//                 logger.info(`📋 URL do GenieACS: ${result.data.genieacsUrl}`);
+//                 logger.info(`📋 Script do Mikrotik: ${result.data.mikrotikScript}`);
 //             }
 //         } else {
-//             logger.warn(`⚠️  Auto GenieACS DNS setup: ${result.message}`);
+//             logger.warn(`⚠️  Configuração automática do DNS GenieACS: ${result.message}`);
 //         }
 //     } catch (error) {
-//         logger.error('❌ Error dalam auto GenieACS DNS setup:', error);
+//         logger.error('❌ Erro na configuração automática do DNS GenieACS:', error);
 //     }
-// }, 15000); // Delay 15 detik setelah server start
+// }, 15000); // Atraso de 15 segundos após o início do servidor
 
-// Tambahkan perintah untuk menambahkan nomor pelanggan ke tag GenieACS
+// Adicionar comando para adicionar o número do cliente à tag GenieACS
 const { addCustomerTag } = require('./config/customerTag');
 
-// Export app untuk testing
+// Exportar app para teste
 module.exports = app;

@@ -1,5 +1,4 @@
 {
-  "admins.0": "6281947215703",
   "admin_username": "admin",
   "admin_password": "admin",
   "genieacs_url": "http://192.168.8.89:7557",
@@ -11,8 +10,6 @@
   "mikrotik_password": "admin",
   "main_interface": "ether1-ISP",
   "pppoe_monitor_enable": true,
-  "technician_numbers.0": "62838076656",
-  "technician_numbers.1": "62822180947",
   "technician_group_id": "120363031495796203@g.us",
   "whatsapp_keep_alive": true,
   "whatsapp_restart_on_error": true,
@@ -118,5 +115,6 @@
     "bank_account": "420601003953531",
     "bank_holder": "WARJAYA",
     "support_message": "Terima kasih telah menggunakan Aplikasi kami."
-  }
+  },
+  "admin_numbers.0": "6281947215703"
 }

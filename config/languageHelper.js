@@ -1,22 +1,22 @@
 const i18n = require('i18n');
 
 /**
- * Language Helper untuk WhatsApp Bot
+ * Auxiliar de Idioma para o Bot do WhatsApp
  */
 class LanguageHelper {
   constructor() {
-    this.defaultLanguage = 'id';
-    this.supportedLanguages = ['id', 'en'];
+    this.defaultLanguage = 'pt';
+    this.supportedLanguages = ['id', 'en', 'pt'];
   }
 
   /**
-   * Get user language preference from database
-   * @param {string} phone - User phone number
-   * @returns {string} Language code
+   * Obtém a preferência de idioma do usuário do banco de dados
+   * @param {string} phone - Número de telefone do usuário
+   * @returns {string} Código do idioma
    */
   async getUserLanguage(phone) {
     try {
-      // Lazy load to avoid circular dependency
+      // Carregamento lento para evitar dependência circular
       const billingManager = require('./billing');
       const customer = await billingManager.getCustomerByPhone(phone);
       
@@ -26,39 +26,39 @@ class LanguageHelper {
       
       return this.defaultLanguage;
     } catch (error) {
-      console.error('Error getting user language:', error);
+      console.error('Erro ao obter o idioma do usuário:', error);
       return this.defaultLanguage;
     }
   }
 
   /**
-   * Set user language preference
-   * @param {string} phone - User phone number  
-   * @param {string} language - Language code
+   * Define a preferência de idioma do usuário
+   * @param {string} phone - Número de telefone do usuário  
+   * @param {string} language - Código do idioma
    */
   async setUserLanguage(phone, language) {
     try {
       if (!this.supportedLanguages.includes(language)) {
-        throw new Error(`Unsupported language: ${language}`);
+        throw new Error(`Idioma não suportado: ${language}`);
       }
 
-      // Lazy load to avoid circular dependency
+      // Carregamento lento para evitar dependência circular
       const billingManager = require('./billing');
       await billingManager.updateCustomerLanguage(phone, language);
       
       return true;
     } catch (error) {
-      console.error('Error setting user language:', error);
+      console.error('Erro ao definir o idioma do usuário:', error);
       return false;
     }
   }
 
   /**
-   * Get localized message for WhatsApp
-   * @param {string} key - Translation key
-   * @param {string} phone - User phone number
-   * @param {Object} params - Parameters for interpolation
-   * @returns {string} Localized message
+   * Obtém mensagem localizada para o WhatsApp
+   * @param {string} key - Chave de tradução
+   * @param {string} phone - Número de telefone do usuário
+   * @param {Object} params - Parâmetros para interpolação
+   * @returns {string} Mensagem localizada
    */
   async getLocalizedMessage(key, phone, params = {}) {
     try {
@@ -67,18 +67,18 @@ class LanguageHelper {
       
       return i18n.__(key, params);
     } catch (error) {
-      console.error('Error getting localized message:', error);
+      console.error('Erro ao obter a mensagem localizada:', error);
       i18n.setLocale(this.defaultLanguage);
       return i18n.__(key, params);
     }
   }
 
   /**
-   * Get localized message with specific language
-   * @param {string} key - Translation key
-   * @param {string} language - Language code
-   * @param {Object} params - Parameters for interpolation
-   * @returns {string} Localized message
+   * Obtém mensagem localizada com um idioma específico
+   * @param {string} key - Chave de tradução
+   * @param {string} language - Código do idioma
+   * @param {Object} params - Parâmetros para interpolação
+   * @returns {string} Mensagem localizada
    */
   getMessageWithLanguage(key, language, params = {}) {
     try {
@@ -87,21 +87,21 @@ class LanguageHelper {
       
       return i18n.__(key, params);
     } catch (error) {
-      console.error('Error getting message with language:', error);
+      console.error('Erro ao obter mensagem com idioma:', error);
       i18n.setLocale(this.defaultLanguage);
       return i18n.__(key, params);
     }
   }
 
   /**
-   * Middleware for web routes to set user language
+   * Middleware para rotas da web para definir o idioma do usuário
    */
   webMiddleware() {
     return async (req, res, next) => {
       try {
         let userLanguage = this.defaultLanguage;
 
-        // Priority: query parameter > session > customer database > default
+        // Prioridade: parâmetro de consulta > sessão > banco de dados do cliente > padrão
         if (req.query && req.query.lang && this.supportedLanguages.includes(req.query.lang)) {
           userLanguage = req.query.lang;
           if (req.session) {
@@ -116,12 +116,12 @@ class LanguageHelper {
               req.session.lang = userLanguage;
             }
           } catch (error) {
-            // Silently fallback to default language to avoid spam logs
+            // Recorre silenciosamente ao idioma padrão para evitar logs de spam
             userLanguage = this.defaultLanguage;
           }
         }
 
-        // Set i18n locale for this request
+        // Define a localidade i18n para esta solicitação
         if (req.setLocale) {
           req.setLocale(userLanguage);
         }
@@ -129,7 +129,7 @@ class LanguageHelper {
         
         next();
       } catch (error) {
-        console.error('Language middleware error:', error);
+        console.error('Erro no middleware de idioma:', error);
         if (req.setLocale) {
           req.setLocale(this.defaultLanguage);
         }
@@ -140,17 +140,17 @@ class LanguageHelper {
   }
 
   /**
-   * Get supported languages list
-   * @returns {Array} Array of supported language codes
+   * Obtém a lista de idiomas suportados
+   * @returns {Array} Array de códigos de idioma suportados
    */
   getSupportedLanguages() {
     return this.supportedLanguages;
   }
 
   /**
-   * Check if language is supported
-   * @param {string} language - Language code to check
-   * @returns {boolean} True if supported
+   * Verifica se o idioma é suportado
+   * @param {string} language - Código do idioma para verificar
+   * @returns {boolean} Verdadeiro se for suportado
    */
   isLanguageSupported(language) {
     return this.supportedLanguages.includes(language);

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Semua Pembayaran - Billing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
+    <link href="/css/admin-mobile.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('../../partials/admin-responsive-sidebar', { page: 'billing-payments', settings: settings }) %>
+    <div class="main-content">
+        <%- include('../../partials/admin-mobile-navbar', { pageTitle: 'Semua Pembayaran' }) %>
+        <main class="container-fluid">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Semua Pembayaran</h1>
+            </div>
+            <p>Halaman ini akan menampilkan semua transaksi pembayaran, termasuk pembayaran kolektor dan admin. Konten sedang dalam pengembangan.</p>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
