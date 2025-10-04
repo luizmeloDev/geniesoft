@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const sqlite3 = require('sqlite3').verbose();
@@ -8,31 +9,32 @@ const logger = require('../config/logger');
 
 // Conexão com o banco de dados
 const dbPath = path.join(__dirname, '../data/billing.db');
-const db = new sqlite3.Database(dbPath);
+const db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        logger.error('Não foi possível conectar ao banco de dados', err);
+    } else {
+        logger.info('Conectado ao banco de dados de faturamento');
+    }
+});
 
-// Gerenciador de faturamento para acesso a pacotes e técnicos
 const billingManager = require('../config/billing');
 
-/**
- * Agendamentos de Instalação - Página de listagem
- */
+
 router.get('/', adminAuth, async (req, res) => {
     try {
-        // Lógica de paginação e filtros (sem alterações)
         res.render('admin/installation-jobs', {
             title: 'Gerenciar Agendamentos de Instalação',
-            // ... outros dados
+            user: req.user,
+            settings: req.settings,
+            page: 'installations'
         });
-
     } catch (error) {
         logger.error('Erro ao carregar agendamentos de instalação:', error);
         res.status(500).send('Erro Interno do Servidor');
     }
 });
 
-/**
- * Criar Novo Agendamento - Página do formulário
- */
+
 router.get('/create', adminAuth, async (req, res) => {
     try {
         const packages = await billingManager.getPackages();
@@ -47,72 +49,103 @@ router.get('/create', adminAuth, async (req, res) => {
             packages,
             technicians,
             job: null,
-            // ... outros dados
+            user: req.user,
+            settings: req.settings,
+            page: 'installations'
         });
-
     } catch (error) {
         logger.error('Erro ao carregar formulário de criação:', error);
-        res.status(500).send('Erro Interno do Servidor');
+        res.status(500).send('Erro ao carregar o formulário.');
     }
 });
 
-/**
- * Criar Agendamento - Handler POST
- */
+
 router.post('/create', adminAuth, async (req, res) => {
-    try {
-        const {
-            customer_id,
-            newCustomerName,
-            newCustomerPhone,
-            newCustomerAddress,
-            package_id, installation_date, installation_time,
-            assigned_technician_id, priority, notes
-        } = req.body;
+    const {
+        customer_id,
+        newCustomerName,
+        newCustomerPhone,
+        newCustomerAddress,
+        package_id,
+        installation_date,
+        installation_time,
+        assigned_technician_id,
+        priority,
+        notes
+    } = req.body;
 
-        let customer_name = newCustomerName;
-        let customer_phone = newCustomerPhone;
-        let customer_address = newCustomerAddress;
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
 
-        if (customer_id) {
-            const existingCustomer = await new Promise((resolve, reject) => {
-                db.get('SELECT id, name, phone, address FROM customers WHERE id = ?', [customer_id], (err, row) => {
-                    if (err) reject(err); else resolve(row);
-                });
-            });
-            if (!existingCustomer) {
-                return res.status(400).json({ success: false, message: 'Cliente não encontrado.' });
+        let finalCustomerId = customer_id;
+
+        const processJobCreation = () => {
+            if (!finalCustomerId) {
+                db.run('ROLLBACK');
+                return res.status(400).json({ success: false, message: 'A identificação do cliente é obrigatória.' });
             }
-            customer_name = existingCustomer.name;
-            customer_phone = existingCustomer.phone;
-            customer_address = existingCustomer.address;
-        }
+            if (!package_id) {
+                db.run('ROLLBACK');
+                return res.status(400).json({ success: false, message: 'A seleção de um plano é obrigatória.' });
+            }
 
-        if (!package_id || !customer_name || !customer_phone || !customer_address) {
-            return res.status(400).json({
-                success: false,
-                message: 'O plano e os dados do cliente (nome, telefone, endereço) são obrigatórios.'
+            const jobData = {
+                customer_id: finalCustomerId,
+                package_id: package_id,
+                installation_date: installation_date,
+                installation_time: installation_time,
+                assigned_technician_id: assigned_technician_id || null,
+                status: 'pending',
+                priority: priority || 'normal',
+                notes: notes || '',
+                created_by: req.user.username
+            };
+
+            const insertJobSql = `
+                INSERT INTO installation_jobs (
+                    customer_id, package_id, installation_date, installation_time, 
+                    assigned_technician_id, status, priority, notes, created_at, created_by
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, DATETIME('now'), ?)
+            `;
+
+            db.run(insertJobSql, [
+                jobData.customer_id, jobData.package_id, jobData.installation_date, jobData.installation_time,
+                jobData.assigned_technician_id, jobData.status, jobData.priority, jobData.notes, jobData.created_by
+            ], function(err) {
+                if (err) {
+                    db.run('ROLLBACK');
+                    logger.error('Falha ao criar agendamento:', err);
+                    return res.status(500).json({ success: false, message: `Falha ao criar o agendamento: ${err.message}` });
+                }
+                db.run('COMMIT');
+                res.json({ success: true, message: 'Agendamento de instalação criado com sucesso!' });
             });
+        };
+
+        if (!finalCustomerId && newCustomerName) {
+            if (!newCustomerName || !newCustomerPhone || !newCustomerAddress) {
+                db.run('ROLLBACK');
+                return res.status(400).json({ success: false, message: 'Para novos clientes, nome, telefone e endereço são obrigatórios.' });
+            }
+
+            const insertCustomerSql = `
+                INSERT INTO customers (name, phone, address, status, created_at, latitude, longitude)
+                VALUES (?, ?, ?, 'pending_installation', DATETIME('now'), NULL, NULL)
+            `;
+            db.run(insertCustomerSql, [newCustomerName, newCustomerPhone, newCustomerAddress], function(err) {
+                if (err) {
+                    db.run('ROLLBACK');
+                    logger.error('Falha ao criar novo cliente:', err);
+                    return res.status(500).json({ success: false, message: `Falha ao criar novo cliente: ${err.message}` });
+                }
+                finalCustomerId = this.lastID;
+                processJobCreation();
+            });
+        } else {
+            processJobCreation();
         }
-
-        // Lógica para gerar número do job e inserir no DB (sem alterações significativas)
-
-        res.json({
-            success: true,
-            message: 'Agendamento de instalação criado com sucesso!',
-            // ... outros dados
-        });
-
-    } catch (error) {
-        logger.error('Erro ao criar agendamento:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Falha ao criar agendamento: ' + error.message
-        });
-    }
+    });
 });
 
-// O resto das rotas (editar, deletar, etc.) também devem ser traduzidas.
-// Por simplicidade, apenas o fluxo de criação foi detalhado aqui.
 
 module.exports = router;
