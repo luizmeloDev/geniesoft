@@ -17,8 +17,8 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 
 ## Últimas Atualizações
 
-- **Visualização de Mapa com Satélite:** Adicionada a opção de visualização de mapa com imagens de satélite do Google Maps na seção "Mapa da Rede". Agora é possível alternar entre o mapa padrão e o de satélite para uma melhor localização e planejamento.
-- **Correção no Formulário de Instalação:** Corrigido um bug no formulário de criação de agendamentos de instalação que impedia a criação de novos agendamentos devido à falta dos campos de data e hora.
+- **Correção Crítica no Formulário de Instalação:** Corrigido um bug que impedia a criação de novos agendamentos de instalação. O problema exibia uma mensagem de erro em indonésio e falhava ao enviar os dados. A correção incluiu a tradução de todas as mensagens para português e a implementação do envio do formulário com JavaScript para fornecer feedback claro (alertas de sucesso/erro) sem recarregar a página.
+- **Visualização de Mapa com Satélite:** Adicionada a opção de visualização com imagens de satélite do Google Maps na seção "Mapa da Rede", permitindo alternar entre a visão padrão e a de satélite.
 
 ## Instalação e Configuração (Brasil)
 
