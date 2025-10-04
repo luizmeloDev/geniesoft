@@ -115,6 +115,16 @@
 
                                 <div class="form-section">
                                     <h5><i class="bi bi-calendar-event me-2"></i>Detalhes da Instalação</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="installation_date" class="form-label">Data da Instalação</label>
+                                            <input type="date" class="form-control" id="installation_date" name="installation_date" value="<%= job ? job.installation_date : '' %>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="installation_time" class="form-label">Hora da Instalação</label>
+                                            <input type="time" class="form-control" id="installation_time" name="installation_time" value="<%= job ? job.installation_time : '' %>">
+                                        </div>
+                                    </div>
                                     <div class="row mt-3">
                                         <div class="col-md-6">
                                             <label for="assignedTechnician" class="form-label">Atribuir Técnico</label>

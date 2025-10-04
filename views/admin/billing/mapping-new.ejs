@@ -10,7 +10,6 @@
     <link href="/css/responsive-admin.css" rel="stylesheet">
     <link href="/css/admin-mobile.css" rel="stylesheet">
     <style>
-        /* Estilos do mapa e da interface (mantidos e otimizados) */
         #map {
             height: 75vh;
             width: 100%;
@@ -24,7 +23,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             margin-bottom: 1.5rem;
         }
-        .loading-overlay { z-index: 1001; /* Garante que fique sobre o mapa */ }
+        .loading-overlay { z-index: 1001; }
     </style>
 </head>
 <body>
@@ -37,7 +36,6 @@
                     <h1 class="h2"><i class="bi bi-map-fill me-2"></i>Mapa da Rede</h1>
                 </div>
 
-                <!-- Barra de Pesquisa de Cliente -->
                 <div class="search-bar">
                     <form id="searchClientForm">
                         <div class="row g-2 align-items-center">
@@ -87,16 +85,32 @@
 
         function initMap() {
             map = L.map('map').setView([-14.235, -51.925], 4); // Centro do Brasil
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+            const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            });
+
+            const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+                maxZoom: 20,
+                subdomains:['mt0','mt1','mt2','mt3'],
+                attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+            });
+
+            const baseMaps = {
+                "Padrão": osm,
+                "Satélite": googleSat
+            };
+
+            osm.addTo(map); // Camada padrão
+            L.control.layers(baseMaps).addTo(map);
+            
             customerMarkers.addTo(map);
         }
 
         async function loadAllCustomers() {
             document.getElementById('loading').style.display = 'flex';
             try {
-                const response = await fetch('/admin/api/clients'); // API que lista todos os clientes
+                const response = await fetch('/admin/api/clients'); 
                 const result = await response.json();
                 if (result.clients) {
                     result.clients.forEach(addCustomerToMap);
@@ -113,7 +127,7 @@
                 const marker = L.marker([client.latitude, client.longitude])
                     .bindPopup(`<b>${client.name}</b><br>${client.address}`)
                     .addTo(customerMarkers);
-                marker.options.clientId = client.id; // Armazena o ID do cliente no marcador
+                marker.options.clientId = client.id; 
             }
         }
 
@@ -135,9 +149,8 @@
                 if (result.success && result.client) {
                     const client = result.client;
                     if (client.latitude && client.longitude) {
-                        map.flyTo([client.latitude, client.longitude], 16); // Zoom mais próximo
+                        map.flyTo([client.latitude, client.longitude], 16);
                         
-                        // Encontra e abre o popup do marcador correspondente
                         customerMarkers.eachLayer(marker => {
                             if (marker.options.clientId === client.id) {
                                 marker.openPopup();

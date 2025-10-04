@@ -15,6 +15,11 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 - **Painel Administrativo Aprimorado:** Interface para administradores, técnicos e atendentes, agora com um menu de navegação totalmente reorganizado, traduzido para o português e mais intuitivo.
 - **Portal do Cliente:** Área para o cliente consultar faturas e informações.
 
+## Últimas Atualizações
+
+- **Visualização de Mapa com Satélite:** Adicionada a opção de visualização de mapa com imagens de satélite do Google Maps na seção "Mapa da Rede". Agora é possível alternar entre o mapa padrão e o de satélite para uma melhor localização e planejamento.
+- **Correção no Formulário de Instalação:** Corrigido um bug no formulário de criação de agendamentos de instalação que impedia a criação de novos agendamentos devido à falta dos campos de data e hora.
+
 ## Instalação e Configuração (Brasil)
 
 Siga os passos abaixo para configurar e executar o projeto em seu ambiente para o Brasil.
