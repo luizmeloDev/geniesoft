@@ -17,8 +17,10 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 
 ## Últimas Atualizações
 
-- **Correção Crítica no Formulário de Instalação:** Corrigido um bug que impedia a criação de novos agendamentos de instalação. O problema exibia uma mensagem de erro em indonésio e falhava ao enviar os dados. A correção incluiu a tradução de todas as mensagens para português e a implementação do envio do formulário com JavaScript para fornecer feedback claro (alertas de sucesso/erro) sem recarregar a página.
-- **Visualização de Mapa com Satélite:** Adicionada a opção de visualização com imagens de satélite do Google Maps na seção "Mapa da Rede", permitindo alternar entre a visão padrão e a de satélite.
+- **Tradução Completa e Correções:**
+    - **Formulário de Instalação:** Corrigido um bug crítico que impedia a criação de novos agendamentos. As mensagens de erro foram traduzidas e o envio do formulário foi aprimorado para fornecer feedback claro em português.
+    - **Scripts de Teste:** Todos os scripts de teste (`test-voucher-webhook-simple.js`, `test-voucher-payment.js`, `test-rxpower-extraction.js`) foram traduzidos para o português para facilitar a depuração e o desenvolvimento.
+    - **Visualização de Mapa:** Adicionada a opção de visualização com imagens de satélite do Google Maps na seção "Mapa da Rede".
 
 ## Instalação e Configuração (Brasil)
 
@@ -39,42 +41,39 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente para 
     ```
 
 2.  **Instale as dependências:**
-    O comando a seguir instalará todas as bibliotecas necessárias.
     ```bash
     npm install
     ```
 
 3.  **Configure as variáveis de ambiente (para o Brasil):**
-    Use o template de configuração brasileiro para criar seu arquivo `settings.json`.
     ```bash
     cp settings.pt-br.template.json settings.json
     ```
     Edite o arquivo `settings.json` e preencha com suas informações (IP do servidor, chaves de API, etc.).
 
 4.  **Configure o banco de dados (Primeira Instalação):**
-    Execute o script `new-server-setup.js` para criar o banco de dados e popular com dados iniciais em português (planos, clientes de exemplo, etc.).
     ```bash
     node scripts/new-server-setup.js
     ```
-    > **IMPORTANTE:** Este comando deve ser executado apenas na primeira vez. Se o script falhar e você precisar executá-lo novamente, primeiro **DEVE** limpar o banco de dados executando `node scripts/complete-reset.js`.
+    > **IMPORTANTE:** Este comando deve ser executado apenas na primeira vez. 
 
 5.  **Inicie o servidor:**
-    - Para produção (recomendado):
+    - Para produção:
       ```bash
       npm start
       ```
-    - Para desenvolvimento (com reinício automático ao salvar alterações):
+    - Para desenvolvimento:
       ```bash
       npm run dev
       ```
 
 6.  **Acesse a aplicação:**
-    Após iniciar, a aplicação estará disponível em `http://localhost:3000` (ou na porta que você configurou em `settings.json`).
+    A aplicação estará disponível em `http://localhost:3000`.
 
 ## Histórico de Alterações
 
-Para um registro detalhado de todas as mudanças, correções e novas funcionalidades, veja o arquivo [CHANGELOG.md](CHANGELOG.md).
+Para um registro detalhado, veja o arquivo [CHANGELOG.md](CHANGELOG.md).
 
 ## Contribuição
 
-Contribuições são bem-vindas! Se você deseja melhorar o projeto, por favor, abra uma *issue* para discutir a sua ideia ou envie um *pull request* com as suas alterações.
+Contribuições são bem-vindas! Abra uma *issue* ou envie um *pull request*.

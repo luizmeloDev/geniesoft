@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Script untuk test pembelian voucher dan memastikan webhook berfungsi
+ * Script para testar a compra de voucher e garantir que o webhook funcione
  */
 
 const sqlite3 = require('sqlite3').verbose();
@@ -13,58 +13,57 @@ async function testVoucherPayment() {
     const db = new sqlite3.Database(dbPath);
     
     try {
-        console.log('🧪 TESTING VOUCHER PAYMENT FLOW');
-        console.log('=' .repeat(50));
+        console.log('🧪 TESTANDO FLUXO DE PAGAMENTO DE VOUCHER');
+        console.log('='.repeat(50));
         
-        // Step 1: Buat customer voucher publik jika belum ada
-        console.log('📋 Step 1: Membuat customer voucher publik...');
+        // Passo 1: Criar cliente de voucher público, se não existir
+        console.log('📋 Passo 1: Criando cliente de voucher público...');
         
         let voucherCustomerId;
         try {
             voucherCustomerId = await billingManager.getCustomerByUsername('voucher_public');
             if (!voucherCustomerId) {
-                // Buat customer voucher baru
                 const customerData = {
                     username: 'voucher_public',
-                    name: 'Voucher Publik',
+                    name: 'Voucher Público',
                     phone: '0000000000',
                     email: 'voucher@public.com',
-                    address: 'Sistem Voucher Publik',
+                    address: 'Sistema de Voucher Público',
                     package_id: 1,
                     status: 'active'
                 };
                 
                 voucherCustomerId = await billingManager.createCustomer(customerData);
-                console.log('✅ Customer voucher publik dibuat dengan ID:', voucherCustomerId.id);
+                console.log('✅ Cliente de voucher público criado com ID:', voucherCustomerId.id);
             } else {
-                console.log('✅ Customer voucher publik sudah ada dengan ID:', voucherCustomerId.id);
+                console.log('✅ Cliente de voucher público já existe com ID:', voucherCustomerId.id);
             }
         } catch (error) {
-            console.error('❌ Error creating voucher customer:', error);
+            console.error('❌ Erro ao criar cliente de voucher:', error);
             return;
         }
         
-        // Step 2: Buat invoice voucher test
-        console.log('\n📋 Step 2: Membuat invoice voucher test...');
+        // Passo 2: Criar fatura de voucher de teste
+        console.log('\n📋 Passo 2: Criando fatura de voucher de teste...');
         
         const invoiceData = {
             customer_id: voucherCustomerId.id,
             package_id: 1,
             amount: 3000,
-            due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 hari dari sekarang
-            notes: 'Test Voucher Hotspot 3rb - 1 Hari x1',
+            due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 dia a partir de agora
+            notes: 'Voucher de Teste Hotspot 3k - 1 Dia x1',
             invoice_type: 'voucher'
         };
         
         const testInvoice = await billingManager.createInvoice(invoiceData);
-        console.log('✅ Invoice voucher test dibuat:', testInvoice.invoice_number);
+        console.log('✅ Fatura de voucher de teste criada:', testInvoice.invoice_number);
         
-        // Step 3: Buat voucher purchase record
-        console.log('\n📋 Step 3: Membuat voucher purchase record...');
+        // Passo 3: Criar registro de compra de voucher
+        console.log('\n📋 Passo 3: Criando registro de compra de voucher...');
         
         const purchaseData = {
             invoice_id: testInvoice.id,
-            customer_name: 'Test Customer',
+            customer_name: 'Cliente de Teste',
             customer_phone: '081234567890',
             voucher_package: '3k',
             voucher_profile: '3k',
@@ -81,25 +80,16 @@ async function testVoucherPayment() {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
             `;
             
-            db.run(sql, [
-                purchaseData.invoice_id,
-                purchaseData.customer_name,
-                purchaseData.customer_phone,
-                purchaseData.voucher_package,
-                purchaseData.voucher_profile,
-                purchaseData.voucher_quantity,
-                purchaseData.amount,
-                purchaseData.status
-            ], function(err) {
+            db.run(sql, Object.values(purchaseData), function(err) {
                 if (err) reject(err);
                 else resolve({ id: this.lastID, ...purchaseData });
             });
         });
         
-        console.log('✅ Voucher purchase record dibuat dengan ID:', purchase.id);
+        console.log('✅ Registro de compra de voucher criado com ID:', purchase.id);
         
-        // Step 4: Simulasi webhook payment success
-        console.log('\n📋 Step 4: Simulasi webhook payment success...');
+        // Passo 4: Simular sucesso do webhook de pagamento
+        console.log('\n📋 Passo 4: Simulando sucesso do webhook de pagamento...');
         
         const webhookData = {
             order_id: testInvoice.invoice_number,
@@ -112,25 +102,25 @@ async function testVoucherPayment() {
             const { handleVoucherWebhook } = require('../routes/publicVoucher');
             const result = await handleVoucherWebhook(webhookData, {});
             
-            console.log('✅ Webhook result:', result);
+            console.log('✅ Resultado do webhook:', result);
             
             if (result.success) {
-                console.log('🎉 Webhook berhasil diproses!');
+                console.log('🎉 Webhook processado com sucesso!');
             } else {
-                console.log('❌ Webhook gagal:', result.message);
+                console.log('❌ Falha no webhook:', result.message);
             }
         } catch (webhookError) {
-            console.error('❌ Webhook error:', webhookError);
+            console.error('❌ Erro no webhook:', webhookError);
         }
         
-        // Step 5: Verifikasi hasil
-        console.log('\n📋 Step 5: Verifikasi hasil...');
+        // Passo 5: Verificar resultados
+        console.log('\n📋 Passo 5: Verificando resultados...');
         
-        // Cek status invoice
+        // Verificar status da fatura
         const updatedInvoice = await billingManager.getInvoiceById(testInvoice.id);
-        console.log('📊 Invoice Status:', updatedInvoice.status);
+        console.log('📊 Status da Fatura:', updatedInvoice.status);
         
-        // Cek status purchase
+        // Verificar status da compra
         const updatedPurchase = await new Promise((resolve, reject) => {
             db.get('SELECT * FROM voucher_purchases WHERE id = ?', [purchase.id], (err, row) => {
                 if (err) reject(err);
@@ -138,11 +128,11 @@ async function testVoucherPayment() {
             });
         });
         
-        console.log('📊 Purchase Status:', updatedPurchase.status);
-        console.log('📊 Voucher Data:', updatedPurchase.voucher_data ? 'Ada' : 'Tidak ada');
+        console.log('📊 Status da Compra:', updatedPurchase.status);
+        console.log('📊 Dados do Voucher:', updatedPurchase.voucher_data ? 'Existe' : 'Não existe');
         
-        // Step 6: Cleanup test data
-        console.log('\n📋 Step 6: Cleanup test data...');
+        // Passo 6: Limpar dados de teste
+        console.log('\n📋 Passo 6: Limpando dados de teste...');
         
         const cleanupAnswer = await new Promise((resolve) => {
             const readline = require('readline');
@@ -151,33 +141,32 @@ async function testVoucherPayment() {
                 output: process.stdout
             });
             
-            rl.question('Hapus data test? (y/N): ', (input) => {
+            rl.question('Excluir dados de teste? (s/N): ', (input) => {
                 rl.close();
                 resolve(input.toLowerCase());
             });
         });
         
-        if (cleanupAnswer === 'y' || cleanupAnswer === 'yes') {
-            // Hapus purchase
+        if (cleanupAnswer === 's' || cleanupAnswer === 'sim') {
+            // Excluir compra
             await new Promise((resolve, reject) => {
                 db.run('DELETE FROM voucher_purchases WHERE id = ?', [purchase.id], (err) => {
-                    if (err) reject(err);
-                    else resolve();
+                    if (err) reject(err); else resolve();
                 });
             });
             
-            // Hapus invoice
+            // Excluir fatura
             await billingManager.deleteInvoice(testInvoice.id);
             
-            console.log('✅ Data test berhasil dihapus');
+            console.log('✅ Dados de teste excluídos com sucesso');
         } else {
-            console.log('ℹ️  Data test tetap disimpan');
+            console.log('ℹ️  Dados de teste mantidos');
         }
         
-        console.log('\n🎉 Test selesai!');
+        console.log('\n🎉 Teste concluído!');
         
     } catch (error) {
-        console.error('❌ Test error:', error);
+        console.error('❌ Erro no teste:', error);
     } finally {
         db.close();
     }
@@ -186,11 +175,11 @@ async function testVoucherPayment() {
 if (require.main === module) {
     testVoucherPayment()
         .then(() => {
-            console.log('\n✅ Test script selesai!');
+            console.log('\n✅ Script de teste concluído!');
             process.exit(0);
         })
         .catch((error) => {
-            console.error('\n❌ Test script gagal:', error);
+            console.error('\n❌ Falha no script de teste:', error);
             process.exit(1);
         });
 }

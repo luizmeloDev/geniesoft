@@ -1,12 +1,12 @@
 /**
- * Script untuk test RXPower extraction dari GenieACS
+ * Script para testar a extração de RXPower do GenieACS
  */
 
 const { getDevicesCached } = require('../config/genieacs');
 
-console.log('🔍 Testing RXPower extraction from GenieACS...\n');
+console.log('🔍 Testando a extração de RXPower do GenieACS...\n');
 
-// Helper function untuk mendapatkan parameter value dari device GenieACS
+// Função auxiliar para obter o valor de um parâmetro de um dispositivo GenieACS
 function getParameterValue(device, parameterPath) {
     try {
         const parts = parameterPath.split('.');
@@ -17,22 +17,22 @@ function getParameterValue(device, parameterPath) {
             current = current[part];
         }
         
-        // Check if it's a GenieACS parameter object
+        // Verifica se é um objeto de parâmetro do GenieACS
         if (current && current._value !== undefined) {
             return current._value;
         }
         
         return current || null;
     } catch (error) {
-        console.error(`Error getting parameter ${parameterPath}:`, error);
+        console.error(`Erro ao obter o parâmetro ${parameterPath}:`, error);
         return null;
     }
 }
 
-// Helper function untuk mendapatkan nilai RXPower dengan multiple paths
+// Função auxiliar para obter o valor de RXPower com múltiplos caminhos
 function getRXPowerValue(device) {
     try {
-        // Paths yang mungkin berisi nilai RXPower
+        // Caminhos que podem conter o valor de RXPower
         const rxPowerPaths = [
             'VirtualParameters.RXPower',
             'VirtualParameters.redaman',
@@ -45,15 +45,15 @@ function getRXPowerValue(device) {
         
         let rxPower = null;
         
-        // Periksa setiap jalur yang mungkin berisi nilai RXPower
+        // Verifica cada caminho que pode conter o valor de RXPower
         for (const path of rxPowerPaths) {
             const value = getParameterValue(device, path);
             if (value !== null && value !== undefined && value !== '') {
-                // Validasi apakah nilai berupa angka
+                // Valida se o valor é um número
                 const numValue = parseFloat(value);
                 if (!isNaN(numValue)) {
                     rxPower = value;
-                    console.log(`📡 Found RXPower: ${rxPower} dBm from path: ${path}`);
+                    console.log(`📡 Encontrado RXPower: ${rxPower} dBm no caminho: ${path}`);
                     break;
                 }
             }
@@ -61,47 +61,47 @@ function getRXPowerValue(device) {
         
         return rxPower;
     } catch (error) {
-        console.error('Error getting RXPower:', error);
+        console.error('Erro ao obter RXPower:', error);
         return null;
     }
 }
 
 async function testRXPowerExtraction() {
     try {
-        console.log('📡 Loading devices from GenieACS...');
+        console.log('📡 Carregando dispositivos do GenieACS...');
         const devices = await getDevicesCached();
         
-        console.log(`📊 Found ${devices.length} devices from GenieACS`);
+        console.log(`📊 Encontrados ${devices.length} dispositivos no GenieACS`);
         
         if (devices.length === 0) {
-            console.log('⚠️ No devices found from GenieACS');
+            console.log('⚠️ Nenhum dispositivo encontrado no GenieACS');
             return;
         }
         
-        // Test RXPower extraction untuk 5 device pertama
+        // Testar a extração de RXPower para os primeiros 5 dispositivos
         const devicesToTest = devices.slice(0, 5);
         
-        console.log('\n🔍 Testing RXPower extraction for first 5 devices:');
+        console.log('\n🔍 Testando a extração de RXPower para os 5 primeiros dispositivos:');
         
         devicesToTest.forEach((device, index) => {
-            console.log(`\n📡 Device ${index + 1}: ${device._id}`);
+            console.log(`\n📡 Dispositivo ${index + 1}: ${device._id}`);
             
-            // Debug device structure
-            console.log('📋 Device keys:', Object.keys(device));
+            // Depurar a estrutura do dispositivo
+            console.log('📋 Chaves do dispositivo:', Object.keys(device));
             
             if (device.VirtualParameters) {
-                console.log('📋 VirtualParameters keys:', Object.keys(device.VirtualParameters));
+                console.log('📋 Chaves de VirtualParameters:', Object.keys(device.VirtualParameters));
             }
             
             if (device.InternetGatewayDevice) {
-                console.log('📋 InternetGatewayDevice keys:', Object.keys(device.InternetGatewayDevice));
+                console.log('📋 Chaves de InternetGatewayDevice:', Object.keys(device.InternetGatewayDevice));
             }
             
-            // Test RXPower extraction
+            // Testar a extração de RXPower
             const rxPower = getRXPowerValue(device);
-            console.log(`📡 RXPower result: ${rxPower}`);
+            console.log(`📡 Resultado do RXPower: ${rxPower}`);
             
-            // Test individual paths
+            // Testar caminhos individuais
             const paths = [
                 'VirtualParameters.RXPower',
                 'VirtualParameters.redaman',
@@ -115,8 +115,8 @@ async function testRXPowerExtraction() {
             });
         });
         
-        // Summary
-        console.log('\n📊 Summary:');
+        // Resumo
+        console.log('\n📊 Resumo:');
         let devicesWithRXPower = 0;
         
         devices.forEach(device => {
@@ -126,19 +126,19 @@ async function testRXPowerExtraction() {
             }
         });
         
-        console.log(`✅ Devices with RXPower data: ${devicesWithRXPower}/${devices.length}`);
+        console.log(`✅ Dispositivos com dados de RXPower: ${devicesWithRXPower}/${devices.length}`);
         
         if (devicesWithRXPower === 0) {
-            console.log('⚠️ No devices have RXPower data - this might be why RXPower is not showing');
-            console.log('💡 Check if GenieACS is properly configured and devices are reporting power data');
+            console.log('⚠️ Nenhum dispositivo possui dados de RXPower - este pode ser o motivo pelo qual o RXPower não está sendo exibido');
+            console.log('💡 Verifique se o GenieACS está configurado corretamente e se os dispositivos estão reportando dados de potência');
         } else {
-            console.log('🎉 RXPower extraction is working!');
+            console.log('🎉 A extração de RXPower está funcionando!');
         }
         
     } catch (error) {
-        console.error('❌ Error testing RXPower extraction:', error);
+        console.error('❌ Erro ao testar a extração de RXPower:', error);
     }
 }
 
-// Jalankan test
+// Executar teste
 testRXPowerExtraction();
