@@ -1,4 +1,4 @@
-# Geniesoft ISP
+ # Geniesoft ISP
 
 O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que integra um gateway de pagamento via WhatsApp com o GenieACS para provisionamento, além de recursos para gestão de clientes, faturamento e suporte técnico. O sistema é compatível com Mikrotik (PPPoE e Hotspot).
 
@@ -95,6 +95,10 @@ Após configurar, execute o script para indexar os dados existentes no Typesense
 ```bash
 node scripts/sync-typesense.js
 ```
+
+## Histórico de Alterações
+
+Para um registro detalhado de todas as mudanças, correções e novas funcionalidades, veja o arquivo [CHANGELOG.md](CHANGELOG.md).
 
 ## Contribuição
 
