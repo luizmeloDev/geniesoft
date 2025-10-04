@@ -95,3 +95,7 @@ node scripts/sync-typesense.js
 ## Contribuição
 
 Contribuições são bem-vindas! Se você deseja melhorar o projeto, por favor, abra uma *issue* para discutir a sua ideia ou envie um *pull request* com as suas alterações.
+
+## Download
+
+Você pode baixar o código-fonte do projeto diretamente através [deste link](build/archive/geniesoft-isp-source.tar.gz).

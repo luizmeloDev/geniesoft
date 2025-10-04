@@ -765,7 +765,7 @@ module.exports = {
     factoryReset: genieacsApi.factoryReset,
     addTagToDevice: genieacsApi.addTagToDevice,
     removeTagFromDevice: genieacsApi.removeTagFromDevice,
-_SERVICE_                    getVirtualParameters: genieacsApi.getVirtualParameters,
+    getVirtualParameters: genieacsApi.getVirtualParameters,
     monitorRXPower,
     monitorOfflineDevices,
     
