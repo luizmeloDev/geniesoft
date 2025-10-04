@@ -24,6 +24,16 @@
             margin-bottom: 1.5rem;
         }
         .loading-overlay { z-index: 1001; }
+        .leaflet-control-ruler {
+            background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktcnVsZXJzIiB2aWV3Qm94PSIwIDAgMTYgMTYiPgogIDxwYXRoIGQ9Ik0xIDBjLS41NTIgMC0xIC40NDgtMSAxIHYxNGMwIC41NTIuNDQ4IDEgMSAxaDE0YzEuMTA1IDAgMS0uODk1IDEtMlYxYzAtLjU1Mi0uNDQ4LTEtMS0xSDF6bTAgMWgxMmEyIDIgMCAwIDEgMiAydjExYy0uNTUyIDAtMS0uNDQ4LTEtMVY0LjVhMS41IDEuNSAwIDAgMC0xLjUtMS41aC0xQS41LjUgMCAwIDAgMTAuNSA0djFoLTVWMy41YTEuNSAxLjUgMCAwIDAtMS41LTEuNUg0YS41LjUgMCAwIDAgLS41LjV2MWgtMVYxLjVhLjUuNSAwIDAgMC0uNS0uNWgtMVYxem0xMyAxdjlsLTkuMDIzLTQuNTEyYy0uMzk2LS4xOTgtLjg4Ny4wNDYtLjg4Ny41M3Y5LjA0OGwtNC41MDItMi4yNTFDMS4yMTQgMTQuMTI3IDEgMTMuNjA1IDEgMTNWM2MwIC41NTIuNDQ4IDEgMSAxaDIuNWEuNS41IDAgMCAwIC41LS41VjNoMVY0YTEuNSAxLjUgMCAwIDAgMS41IDEuNWg1VjQuNWEuNS41IDAgMCAwIC41LS41VjNoMXYxMmgxVjJ6Ii8+Cjwvc3ZnPg==");
+            background-size: 16px 16px;
+            background-repeat: no-repeat;
+            background-position: center center;
+            cursor: pointer;
+        }
+        .leaflet-control-ruler.active {
+            background-color: #c8e6c9; /* Um verde claro para indicar que está ativo */
+        }
     </style>
 </head>
 <body>
@@ -37,21 +47,24 @@
                 </div>
 
                 <div class="search-bar">
-                    <form id="searchClientForm">
+                    <form id="searchForm">
                         <div class="row g-2 align-items-center">
                             <div class="col-md-5">
-                                <input type="text" class="form-control" id="searchValue" placeholder="Digite para buscar...">
+                                <input type="text" class="form-control" id="searchValue" placeholder="Buscar por cliente, endereço, serial, etc.">
                             </div>
                             <div class="col-md-4">
                                 <select class="form-select" id="searchType">
-                                    <option value="name">Nome do Cliente</option>
-                                    <option value="cpf">CPF</option>
-                                    <option value="phone">Telefone</option>
-                                    <option value="code">Código do Cliente</option>
+                                    <option value="all">Tudo</option>
+                                    <option value="customer_name">Nome do Cliente</option>
+                                    <option value="address">Endereço</option>
+                                    <option value="pppoe_username">Usuário PPPoE</option>
+                                    <option value="onu_serial">Serial da ONU</option>
+                                    <option value="odp_name">Nome do ODP</option>
+                                    <option value="coordinates">Coordenadas (lat, long)</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Buscar Cliente</button>
+                                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Buscar</button>
                             </div>
                         </div>
                     </form>
@@ -70,106 +83,276 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let map;
-        let customerMarkers = L.layerGroup();
-
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
-            loadAllCustomers();
+            loadMapData();
 
-            document.getElementById('searchClientForm').addEventListener('submit', (e) => {
+            document.getElementById('searchForm').addEventListener('submit', (e) => {
                 e.preventDefault();
-                searchClient();
+                performSearch();
             });
         });
 
+        let map;
+        let allMapData = {
+            customers: [],
+            onuDevices: [],
+            odps: [],
+            cables: [],
+            backboneCables: []
+        };
+        
+        let customerLayer = L.layerGroup();
+        let onuLayer = L.layerGroup();
+        let odpLayer = L.layerGroup();
+        let cableLayer = L.layerGroup();
+        let backboneLayer = L.layerGroup();
+        let rulerLayer = L.layerGroup();
+
+        let isRulerActive = false;
+        let rulerPoints = [];
+
         function initMap() {
-            map = L.map('map').setView([-14.235, -51.925], 4); // Centro do Brasil
+            map = L.map('map', {
+                center: [-14.235, -51.925], // Centro do Brasil
+                zoom: 4,
+                layers: [customerLayer, onuLayer, odpLayer, cableLayer, backboneLayer, rulerLayer]
+            });
 
             const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            });
+            }).addTo(map);
 
-            const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
-                maxZoom: 20,
+            const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                maxZoom: 22,
                 subdomains:['mt0','mt1','mt2','mt3'],
                 attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>'
             });
 
-            const baseMaps = {
-                "Padrão": osm,
-                "Satélite": googleSat
+            const baseMaps = { "Padrão": osm, "Satélite": googleSat };
+            const overlayMaps = {
+                "Clientes": customerLayer,
+                "ONUs": onuLayer,
+                "ODPs": odpLayer,
+                "Cabos de Acesso": cableLayer,
+                "Cabos Backbone": backboneLayer
             };
 
-            osm.addTo(map); // Camada padrão
-            L.control.layers(baseMaps).addTo(map);
-            
-            customerMarkers.addTo(map);
+            L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+            // Controle da Régua
+            L.Control.Ruler = L.Control.extend({
+                onAdd: function(map) {
+                    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+                    const button = L.DomUtil.create('a', 'leaflet-control-ruler', container);
+                    button.href = '#';
+                    button.title = 'Ativar/desativar régua';
+
+                    L.DomEvent.on(button, 'click', L.DomEvent.stop).on(button, 'click', toggleRuler);
+                    
+                    return container;
+                },
+                onRemove: function(map) {}
+            });
+            L.control.ruler = (opts) => new L.Control.Ruler(opts);
+            L.control.ruler({ position: 'topleft' }).addTo(map);
         }
 
-        async function loadAllCustomers() {
+        async function loadMapData() {
             document.getElementById('loading').style.display = 'flex';
             try {
-                const response = await fetch('/admin/api/clients'); 
+                const response = await fetch('/admin/billing/api/mapping/new');
                 const result = await response.json();
-                if (result.clients) {
-                    result.clients.forEach(addCustomerToMap);
+                if (result.success) {
+                    allMapData = result.data;
+                    drawMap(allMapData);
+                } else {
+                    throw new Error(result.error || 'Falha ao carregar dados do mapa.');
                 }
             } catch (error) {
-                console.error('Erro ao carregar clientes:', error);
+                console.error('Erro ao carregar dados do mapa:', error);
+                alert('Não foi possível carregar os dados do mapa. Tente recarregar a página.');
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
-        function addCustomerToMap(client) {
-            if (client.latitude && client.longitude) {
-                const marker = L.marker([client.latitude, client.longitude])
-                    .bindPopup(`<b>${client.name}</b><br>${client.address}`)
-                    .addTo(customerMarkers);
-                marker.options.clientId = client.id; 
+        function drawMap(data) {
+            // Limpa camadas existentes
+            customerLayer.clearLayers();
+            onuLayer.clearLayers();
+            odpLayer.clearLayers();
+            cableLayer.clearLayers();
+            backboneLayer.clearLayers();
+
+            // Adiciona clientes
+            data.customers.forEach(customer => {
+                const marker = L.marker([customer.latitude, customer.longitude], {
+                    icon: L.icon({ iconUrl: '/icons/customer.svg', iconSize: [28, 28] })
+                }).bindPopup(`<b>Cliente:</b> ${customer.name}<br><b>Endereço:</b> ${customer.address}`);
+                customerLayer.addLayer(marker);
+            });
+
+             // Adiciona ONUs
+            data.onuDevices.forEach(onu => {
+                const statusColor = onu.status === 'Online' ? '#4CAF50' : '#F44336';
+                const marker = L.circleMarker([onu.latitude, onu.longitude], {
+                    radius: 7,
+                    fillColor: statusColor,
+                    color: '#000',
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).bindPopup(`<b>ONU:</b> ${onu.serialNumber}<br><b>Status:</b> ${onu.status}<br><b>Cliente:</b> ${onu.customerName}`);
+                onuLayer.addLayer(marker);
+            });
+
+            // Adiciona ODPs
+            data.odps.forEach(odp => {
+                const marker = L.marker([odp.latitude, odp.longitude], {
+                    icon: L.icon({ iconUrl: '/icons/odp.svg', iconSize: [32, 32] })
+                }).bindPopup(`<b>ODP:</b> ${odp.name}<br><b>Código:</b> ${odp.code}<br><b>Capacidade:</b> ${odp.used_ports}/${odp.capacity}`);
+                odpLayer.addLayer(marker);
+            });
+
+            // Adiciona cabos de acesso
+            data.cables.forEach(cable => {
+                const polyline = L.polyline(cable.coordinates, { color: 'blue', weight: 2 })
+                                .bindPopup(`<b>Cabo:</b> ${cable.from} -> ${cable.to}`);
+                cableLayer.addLayer(polyline);
+            });
+
+            // Adiciona cabos backbone
+            data.backboneCables.forEach(cable => {
+                const polyline = L.polyline(cable.coordinates, { color: 'red', weight: 3, dashArray: '5, 5' })
+                                .bindPopup(`<b>Backbone:</b> ${cable.from} -> ${cable.to}`);
+                backboneLayer.addLayer(polyline);
+            });
+
+            if(data.customers.length > 0) {
+                const firstCustomer = data.customers[0];
+                map.setView([firstCustomer.latitude, firstCustomer.longitude], 15);
             }
         }
-
-        async function searchClient() {
+        
+        function performSearch() {
             const type = document.getElementById('searchType').value;
-            const value = document.getElementById('searchValue').value.trim();
+            const value = document.getElementById('searchValue').value.trim().toLowerCase();
 
             if (!value) {
-                alert('Por favor, insira um valor para a busca.');
+                map.fitBounds(getBounds(allMapData));
                 return;
             }
 
-            document.getElementById('loading').style.display = 'flex';
-
-            try {
-                const response = await fetch(`/admin/api/clients/search?type=${type}&value=${encodeURIComponent(value)}`);
-                const result = await response.json();
-
-                if (result.success && result.client) {
-                    const client = result.client;
-                    if (client.latitude && client.longitude) {
-                        map.flyTo([client.latitude, client.longitude], 16);
-                        
-                        customerMarkers.eachLayer(marker => {
-                            if (marker.options.clientId === client.id) {
-                                marker.openPopup();
-                            }
-                        });
-
-                    } else {
-                        alert('Cliente encontrado, mas não possui coordenadas de mapa cadastradas.');
-                    }
+            if (type === 'coordinates') {
+                const coords = value.split(',').map(c => parseFloat(c.trim()));
+                if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+                    const lat = coords[0];
+                    const lng = coords[1];
+                    map.flyTo([lat, lng], 18);
+                    L.marker([lat, lng], {
+                        icon: L.icon({ iconUrl: '/icons/pin.svg', iconSize: [32, 32] })
+                    }).addTo(map).bindPopup(`Coordenadas: ${lat.toFixed(5)}, ${lng.toFixed(5)}`).openPopup();
                 } else {
-                    alert('Cliente não encontrado. Verifique os dados e tente novamente.');
+                    alert('Formato de coordenadas inválido. Use "latitude, longitude" (ex: -23.550, -46.633).');
                 }
-            } catch (error) {
-                console.error('Erro na busca:', error);
-                alert('Ocorreu um erro ao se comunicar com o servidor.');
-            } finally {
-                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            // Lógica de busca para outros tipos
+            const results = [];
+            if (type === 'all' || type === 'customer_name') {
+                allMapData.customers.filter(c => c.name.toLowerCase().includes(value)).forEach(c => results.push({lat: c.latitude, lng: c.longitude}));
+            }
+            if (type === 'all' || type === 'address') {
+                allMapData.customers.filter(c => c.address.toLowerCase().includes(value)).forEach(c => results.push({lat: c.latitude, lng: c.longitude}));
+            }
+             if (type === 'all' || type === 'pppoe_username') {
+                allMapData.onuDevices.filter(o => o.customerPPPoE && o.customerPPPoE.toLowerCase().includes(value)).forEach(o => results.push({lat: o.latitude, lng: o.longitude}));
+            }
+            if (type === 'all' || type === 'onu_serial') {
+                allMapData.onuDevices.filter(o => o.serialNumber.toLowerCase().includes(value)).forEach(o => results.push({lat: o.latitude, lng: o.longitude}));
+            }
+            if (type === 'all' || type === 'odp_name') {
+                allMapData.odps.filter(o => o.name.toLowerCase().includes(value)).forEach(o => results.push({lat: o.latitude, lng: o.longitude}));
+            }
+
+            if(results.length > 0) {
+                const bounds = L.latLngBounds(results.map(r => [r.lat, r.lng]));
+                map.fitBounds(bounds.pad(0.1));
+            } else {
+                alert('Nenhum resultado encontrado.');
             }
         }
+
+        function toggleRuler(e) {
+            isRulerActive = !isRulerActive;
+            const button = e.target;
+
+            if (isRulerActive) {
+                L.DomUtil.addClass(button, 'active');
+                map.getContainer().style.cursor = 'crosshair';
+                map.on('click', onMapClickRuler);
+                map.on('contextmenu', finishRuler);
+            } else {
+                L.DomUtil.removeClass(button, 'active');
+                map.getContainer().style.cursor = '';
+                map.off('click', onMapClickRuler);
+                map.off('contextmenu', finishRuler);
+                rulerLayer.clearLayers();
+                rulerPoints = [];
+            }
+        }
+
+        function onMapClickRuler(e) {
+            rulerPoints.push(e.latlng);
+            L.circleMarker(e.latlng, { radius: 3, color: 'red' }).addTo(rulerLayer);
+            if (rulerPoints.length > 1) {
+                L.polyline(rulerPoints, { color: 'red', weight: 2, dashArray: '5, 5' }).addTo(rulerLayer);
+            }
+        }
+
+        function finishRuler(e) {
+            L.DomEvent.preventDefault(e);
+            if (rulerPoints.length < 2) {
+                toggleRuler({target: document.querySelector('.leaflet-control-ruler')}); // Desativa
+                return;
+            }
+
+            let totalDistance = 0;
+            for (let i = 0; i < rulerPoints.length - 1; i++) {
+                totalDistance += rulerPoints[i].distanceTo(rulerPoints[i + 1]);
+            }
+
+            const lastPoint = rulerPoints[rulerPoints.length - 1];
+            const popupContent = `<b>Distância Total:</b><br>${totalDistance.toFixed(2)} metros`;
+            L.popup()
+                .setLatLng(lastPoint)
+                .setContent(popupContent)
+                .openOn(map);
+
+            // Mantém o desenho no mapa mas finaliza o modo régua
+            isRulerActive = false; 
+            const button = document.querySelector('.leaflet-control-ruler');
+            L.DomUtil.removeClass(button, 'active');
+            map.getContainer().style.cursor = '';
+            map.off('click', onMapClickRuler);
+            map.off('contextmenu', finishRuler);
+            rulerPoints = []; // Limpa para a próxima medição
+        }
+
+        function getBounds(data) {
+             const allCoords = [
+                ...data.customers.map(c => [c.latitude, c.longitude]),
+                ...data.odps.map(o => [o.latitude, o.longitude])
+            ].filter(coord => coord[0] && coord[1]);
+
+            if (allCoords.length > 0) {
+                return L.latLngBounds(allCoords);
+            }
+            return null;
+        }
+
     </script>
 </body>
 </html>
