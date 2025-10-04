@@ -124,8 +124,8 @@ async function newServerSetup() {
         for (const cust of customers) {
             const id = await getOrCreate(
                 'SELECT id FROM customers WHERE username = ?', [cust.user],
-                'INSERT INTO customers (username, name, phone, email, address, status, join_date) VALUES (?, ?, ?, ?, ?, 'active', CURRENT_TIMESTAMP)',
-                [cust.user, cust.name, cust.phone, cust.email, cust.addr],
+                'INSERT INTO customers (username, name, phone, email, address, status, join_date) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)',
+                [cust.user, cust.name, cust.phone, cust.email, cust.addr, 'active'],
                 `Cliente ${cust.user}`
             );
             customerIds.push(id);
@@ -142,7 +142,7 @@ async function newServerSetup() {
         for (const inv of invoices) {
             await getOrCreate(
                 'SELECT id FROM invoices WHERE invoice_number = ?', [inv.num],
-                'INSERT INTO invoices (customer_id, package_id, amount, status, due_date, created_at, invoice_number, invoice_type) VALUES (?, ?, ?, 'unpaid', ?, CURRENT_TIMESTAMP, ?, 'monthly')',
+                'INSERT INTO invoices (customer_id, package_id, amount, status, due_date, created_at, invoice_number, invoice_type) VALUES (?, ?, ?, \'unpaid\', ?, CURRENT_TIMESTAMP, ?, \'monthly\')',
                 [inv.custId, inv.pkgId, inv.amount, new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], inv.num],
                 `Fatura ${inv.num}`
             );
