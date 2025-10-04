@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,44 +7,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="/css/responsive-admin.css" rel="stylesheet">
-    <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/public/css/responsive-admin.css" rel="stylesheet">
+    <link href="/public/css/admin-mobile.css" rel="stylesheet">
 </head>
 <body>
     <%- include('../../partials/admin-responsive-sidebar', { page: 'billing-customers', settings: settings }) %>
+
     <div class="main-content">
         <%- include('../../partials/admin-mobile-navbar', { pageTitle: 'Detalhes do Cliente' }) %>
         <main class="container-fluid">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Detalhes do Cliente</h1>
+                <h1 class="h2"><i class="bi bi-person-lines-fill me-2"></i>Detalhes do Cliente</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="/admin/billing/customers" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar para Lista
+                    </a>
+                </div>
             </div>
 
             <div class="row">
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Informações do Cliente</h5>
+                <!-- Card de Informações do Cliente -->
+                <div class="col-lg-5 col-md-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Informações Principais</h5>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editCustomerModal">
+                                <i class="bi bi-pencil-square me-1"></i> Editar
+                            </button>
                         </div>
                         <div class="card-body">
-                            <!-- Conteúdo das informações do cliente -->
+                            <p><strong>Nome:</strong> <span id="customer-name"><%= customer.name %></span></p>
+                            <p><strong>Telefone:</strong> <span id="customer-phone"><%= customer.phone %></span></p>
+                            <p><strong>Email:</strong> <span id="customer-email"><%= customer.email || 'N/A' %></span></p>
+                            <p><strong>Endereço:</strong> <span id="customer-address"><%= customer.address || 'N/A' %></span></p>
+                            <p><strong>Usuário do Sistema:</strong> <span id="customer-username"><%= customer.username %></span></p>
+                            <p><strong>Usuário PPPoE:</strong> <span id="customer-pppoe-username"><%= customer.pppoe_username || 'N/A' %></span></p>
+                            <p><strong>Status:</strong> <span id="customer-status" class="badge bg-<%= customer.status === 'active' ? 'success' : 'danger' %>"><%= customer.status %></span></p>
+                            <p><strong>Data de Cadastro:</strong> <%= new Date(customer.join_date).toLocaleDateString('pt-BR') %></p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-8">
-                    <div class="card">
+
+                <!-- Card de Plano e Faturamento -->
+                <div class="col-lg-7 col-md-12 mb-4">
+                    <div class="card h-100">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">Plano de Internet</h5>
+                            <h5 class="mb-0"><i class="bi bi-wifi me-2"></i>Plano & Faturamento</h5>
                         </div>
                         <div class="card-body">
-                            <!-- Conteúdo das informações do plano -->
+                            <% if (customer.package_id && packages.find(p => p.id === customer.package_id)) { %>
+                                <% const pkg = packages.find(p => p.id === customer.package_id); %>
+                                <p><strong>Plano Atual:</strong> <%= pkg.name %> (<%= pkg.speed %>)</p>
+                                <p><strong>Valor do Plano:</strong> R$ <%= parseFloat(pkg.price).toLocaleString('pt-BR') %></p>
+                            <% } else { %>
+                                <p class="text-muted">Nenhum plano associado.</p>
+                            <% } %>
+                            <hr>
+                            <p><strong>Dia de Faturamento:</strong> Dia <span id="customer-billing-day"><%= customer.billing_day %></span> de cada mês</p>
+                            <p><strong>Suspensão Automática:</strong> <span id="customer-auto-suspension" class="badge bg-<%= customer.auto_suspension ? 'info' : 'secondary' %>"><%= customer.auto_suspension ? 'Ativada' : 'Desativada' %></span></p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card mt-4">
+            <!-- Histórico de Faturas -->
+            <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Histórico de Faturas</h5>
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Histórico de Faturas</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -58,7 +88,28 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Conteúdo do histórico de faturas -->
+                                <% if (invoices && invoices.length > 0) { %>
+                                    <% invoices.forEach(invoice => { %>
+                                        <tr>
+                                            <td><%= invoice.invoice_number %></td>
+                                            <td>R$ <%= parseFloat(invoice.amount).toLocaleString('pt-BR') %></td>
+                                            <td>
+                                                <span class="badge bg-<%= invoice.status === 'paid' ? 'success' : (invoice.status === 'unpaid' ? 'warning' : 'secondary') %>">
+                                                    <%= invoice.status === 'paid' ? 'Paga' : (invoice.status === 'unpaid' ? 'Pendente' : invoice.status) %>
+                                                </span>
+                                            </td>
+                                            <td><%= new Date(invoice.due_date).toLocaleDateString('pt-BR') %></td>
+                                            <td>
+                                                <a href="/admin/billing/invoices/<%= invoice.id %>/print" class="btn btn-sm btn-outline-secondary" target="_blank" title="Imprimir"><i class="bi bi-printer"></i></a>
+                                                <a href="/admin/billing/invoices/<%= invoice.id %>/edit" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="5" class="text-center">Nenhuma fatura encontrada.</td>
+                                    </tr>
+                                <% } %>
                             </tbody>
                         </table>
                     </div>
@@ -67,6 +118,159 @@
         </main>
     </div>
 
+    <!-- Modal para Editar Cliente -->
+    <div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCustomerModalLabel">Editar Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCustomerForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-name" class="form-label">Nome Completo</label>
+                                <input type="text" class="form-control" id="edit-name" value="<%= customer.name %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-phone" class="form-label">Telefone</label>
+                                <input type="text" class="form-control" id="edit-phone" value="<%= customer.phone %>" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="edit-email" value="<%= customer.email || '' %>">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-address" class="form-label">Endereço</label>
+                            <textarea class="form-control" id="edit-address" rows="3"><%= customer.address || '' %></textarea>
+                        </div>
+                         <hr>
+                        <div class="row">
+                           <div class="col-md-6 mb-3">
+                                <label for="edit-username" class="form-label">Usuário do Sistema</label>
+                                <input type="text" class="form-control" id="edit-username" value="<%= customer.username %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-pppoe_username" class="form-label">Usuário PPPoE</label>
+                                <input type="text" class="form-control" id="edit-pppoe_username" value="<%= customer.pppoe_username || '' %>">
+                            </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-md-6 mb-3">
+                                <label for="edit-package_id" class="form-label">Plano</label>
+                                <select class="form-select" id="edit-package_id">
+                                    <% packages.forEach(pkg => { %>
+                                        <option value="<%= pkg.id %>" <%= customer.package_id === pkg.id ? 'selected' : '' %>>
+                                            <%= pkg.name %> - R$ <%= parseFloat(pkg.price).toLocaleString('pt-BR') %>
+                                        </option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-billing_day" class="form-label">Dia do Faturamento</label>
+                                <input type="number" class="form-control" id="edit-billing_day" min="1" max="28" value="<%= customer.billing_day %>">
+                            </div>
+                        </div>
+                         <div class="row">
+                           <div class="col-md-6 mb-3">
+                                <label for="edit-status" class="form-label">Status</label>
+                                <select class="form-select" id="edit-status">
+                                    <option value="active" <%= customer.status === 'active' ? 'selected' : '' %>>Ativo</option>
+                                    <option value="suspended" <%= customer.status === 'suspended' ? 'selected' : '' %>>Suspenso</option>
+                                     <option value="inactive" <%= customer.status === 'inactive' ? 'selected' : '' %>>Inativo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-auto_suspension" class="form-label">Suspensão Automática</label>
+                                <select class="form-select" id="edit-auto_suspension">
+                                    <option value="1" <%= customer.auto_suspension ? 'selected' : '' %>>Ativada</option>www
+                                    <option value="0" <%= !customer.auto_suspension ? 'selected' : '' %>>Desativada</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveCustomerChanges">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('saveCustomerChanges').addEventListener('click', async () => {
+            const originalPhone = '<%= customer.phone %>';
+            const form = document.getElementById('editCustomerForm');
+            const data = {
+                name: document.getElementById('edit-name').value,
+                phone: document.getElementById('edit-phone').value,
+                email: document.getElementById('edit-email').value,
+                address: document.getElementById('edit-address').value,
+                username: document.getElementById('edit-username').value,
+                pppoe_username: document.getElementById('edit-pppoe_username').value,
+                package_id: document.getElementById('edit-package_id').value,
+                billing_day: document.getElementById('edit-billing_day').value,
+                status: document.getElementById('edit-status').value,
+                auto_suspension: document.getElementById('edit-auto_suspension').value,
+            };
+
+            try {
+                const response = await fetch(`/admin/billing/customers/${originalPhone}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    const errorResult = await response.json();
+                    throw new Error(errorResult.message || 'Falha ao salvar as alterações.');
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Atualiza a página dinamicamente
+                    document.getElementById('customer-name').innerText = result.customer.name;
+                    document.getElementById('customer-phone').innerText = result.customer.phone;
+                    document.getElementById('customer-email').innerText = result.customer.email || 'N/A';
+                    document.getElementById('customer-address').innerText = result.customer.address || 'N/A';
+                    document.getElementById('customer-username').innerText = result.customer.username;
+                    document.getElementById('customer-pppoe-username').innerText = result.customer.pppoe_username || 'N/A';
+                    
+                    const statusBadge = document.getElementById('customer-status');
+                    statusBadge.innerText = result.customer.status;
+                    statusBadge.className = `badge bg-${result.customer.status === 'active' ? 'success' : 'danger'}`;
+                    
+                    document.getElementById('customer-billing-day').innerText = result.customer.billing_day;
+                    
+                    const suspensionBadge = document.getElementById('customer-auto-suspension');
+                    suspensionBadge.innerText = result.customer.auto_suspension ? 'Ativada' : 'Desativada';
+                    suspensionBadge.className = `badge bg-${result.customer.auto_suspension ? 'info' : 'secondary'}`;
+
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editCustomerModal'));
+                    modal.hide();
+
+                    // Se o número de telefone (que é o ID na URL) mudou, recarregue a página para a nova URL
+                    if(originalPhone !== result.customer.phone) {
+                        alert('Cliente atualizado com sucesso! Como o telefone mudou, a página será recarregada.');
+                        window.location.href = `/admin/billing/customers/${result.customer.phone}`;
+                    } else {
+                         alert('Cliente atualizado com sucesso!');
+                    }
+                } else {
+                    alert('Erro: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao salvar cliente:', error);
+                alert('Erro ao salvar: ' + error.message);
+            }
+        });
+    </script>
 </body>
 </html>
