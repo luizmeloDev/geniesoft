@@ -39,10 +39,8 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 
 ## Últimas Atualizações
 
+- **Correção no Script de Instalação:** O script `new-server-setup.js` foi reescrito para ser idempotente, permitindo que seja executado várias vezes sem causar erros de duplicação de dados.
 - **Correção no Formulário de Instalação:** Resolvido o bug que impedia a criação de novas instalações. O botão "Novo Cliente" agora funciona, exibindo os campos necessários, e a busca por clientes existentes foi implementada, garantindo que os dados do cliente sejam enviados corretamente.
-- **Tradução Completa e Correções:**
-    - **Scripts de Teste:** Todos os scripts de teste (`test-voucher-webhook-simple.js`, `test-voucher-payment.js`, `test-rxpower-extraction.js`) foram traduzidos para o português para facilitar a depuração e o desenvolvimento.
-    - **Visualização de Mapa:** Adicionada a opção de visualização com imagens de satélite do Google Maps na seção "Mapa da Rede".
 
 ## Instalação e Configuração (Brasil)
 
@@ -73,11 +71,11 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente para 
     ```
     Edite o arquivo `settings.json` e preencha com suas informações (IP do servidor, chaves de API, etc.).
 
-4.  **Configure o banco de dados (Primeira Instalação):**
+4.  **Configure o banco de dados:**
     ```bash
     node scripts/new-server-setup.js
     ```
-    > **IMPORTANTE:** Este comando deve ser executado apenas na primeira vez. 
+    > **Nota:** Este script configura o banco de dados com dados iniciais (pacotes, admin padrão, etc.). Graças às últimas atualizações, ele é seguro para ser executado múltiplas vezes, pois apenas cria os dados que ainda não existem.
 
 5.  **Inicie o servidor:**
     - Para produção:
