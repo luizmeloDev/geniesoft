@@ -48,6 +48,24 @@ const getAppSettings = (req, res, next) => {
     next();
 };
 
+// Rota para a nova página de mapeamento
+router.get('/mapping-new', adminAuth, getAppSettings, async (req, res) => {
+    try {
+        // Renderiza a página de mapeamento, passando as configurações do aplicativo
+        res.render('admin/billing/mapping-new', { 
+            title: 'Novo Mapa da Rede', 
+            appSettings: req.appSettings,
+            google_maps_api_key: await getSetting('google_maps_api_key', '')
+        });
+    } catch (error) {
+        logger.error('Erro ao carregar a nova página de mapeamento:', error);
+        res.status(500).render('error', { 
+            message: 'Erro ao carregar o novo mapa da rede',
+            error: process.env.NODE_ENV === 'development' ? error : {} 
+        });
+    }
+});
+
 // Painel de Faturamento Móvel
 router.get('/mobile', getAppSettings, async (req, res) => {
     try {
