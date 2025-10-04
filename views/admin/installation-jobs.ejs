@@ -1,128 +1,122 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Manajemen Jadwal Instalasi - Admin Panel</title>
+    <title>Gerenciamento de Instalações - Painel Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/responsive-admin.css" rel="stylesheet">
-    <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
 </head>
 <body>
 <div class="container-fluid">
     <div class="row">
-        <!-- Include Admin Responsive Sidebar -->
         <%- include('../partials/admin-responsive-sidebar', { page: 'installations', settings: settings }) %>
         
         <main class="col-md-10 ms-sm-auto main-content">
-            <!-- Header -->
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">
-                    <i class="bi bi-tools me-2"></i>Manajemen Jadwal Instalasi
+                    <i class="bi bi-tools me-2"></i>Gerenciamento de Instalações
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <div class="btn-group me-2">
                         <a href="/admin/installations/create" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-2"></i>Tambah Job Baru
+                            <i class="bi bi-plus-circle me-2"></i>Adicionar Nova Instalação
                         </a>
                         <button type="button" class="btn btn-outline-secondary" onclick="refreshPage()">
-                            <i class="bi bi-arrow-clockwise"></i> Segarkan
+                            <i class="bi bi-arrow-clockwise"></i> Atualizar
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
             <div class="quick-actions">
                 <h5 class="mb-3">
-                    <i class="bi bi-lightning me-2"></i>Aksi Cepat
+                    <i class="bi bi-lightning me-2"></i>Ações Rápidas
                 </h5>
                 <div class="d-flex flex-wrap">
                     <a href="/admin/installations/create" class="btn btn-primary quick-action-btn">
-                        <i class="bi bi-plus-circle me-2"></i>Instalasi Baru
+                        <i class="bi bi-plus-circle me-2"></i>Nova Instalação
                     </a>
                     <a href="/admin/installations?status=scheduled" class="btn btn-warning quick-action-btn">
-                        <i class="bi bi-calendar me-2"></i>Lihat Terjadwal
+                        <i class="bi bi-calendar me-2"></i>Ver Agendadas
                     </a>
                     <a href="/admin/installations?status=in_progress" class="btn btn-info quick-action-btn">
-                        <i class="bi bi-play-circle me-2"></i>Sedang Proses
+                        <i class="bi bi-play-circle me-2"></i>Em Andamento
                     </a>
                     <a href="/admin/installations?status=completed" class="btn btn-success quick-action-btn">
-                        <i class="bi bi-check-circle me-2"></i>Selesai
+                        <i class="bi bi-check-circle me-2"></i>Concluídas
                     </a>
                     <a href="/admin/installations?status=cancelled" class="btn btn-danger quick-action-btn">
-                        <i class="bi bi-x-circle me-2"></i>Dibatalkan
+                        <i class="bi bi-x-circle me-2"></i>Canceladas
                     </a>
                 </div>
             </div>
 
-            <!-- Statistics Cards -->
             <div class="row mb-4">
                 <div class="col-md-2 col-6 mb-3">
                     <div class="stats-card text-center">
                         <div class="stats-number"><%= typeof stats !== 'undefined' && stats.total ? stats.total : 0 %></div>
-                        <div class="stats-label">Total Job</div>
+                        <div class="stats-label">Total</div>
                     </div>
                 </div>
                 <div class="col-md-2 col-6 mb-3">
                     <div class="stats-card text-center">
                         <div class="stats-number"><%= typeof stats !== 'undefined' && stats.scheduled ? stats.scheduled : 0 %></div>
-                        <div class="stats-label">Terjadwal</div>
+                        <div class="stats-label">Agendadas</div>
                     </div>
                 </div>
                 <div class="col-md-2 col-6 mb-3">
                     <div class="stats-card text-center">
                         <div class="stats-number"><%= typeof stats !== 'undefined' && stats.assigned ? stats.assigned : 0 %></div>
-                        <div class="stats-label">Ditugaskan</div>
+                        <div class="stats-label">Atribuídas</div>
                     </div>
                 </div>
                 <div class="col-md-2 col-6 mb-3">
                     <div class="stats-card text-center">
                         <div class="stats-number"><%= typeof stats !== 'undefined' && stats.in_progress ? stats.in_progress : 0 %></div>
-                        <div class="stats-label">Sedang Proses</div>
+                        <div class="stats-label">Em Andamento</div>
                     </div>
                 </div>
                 <div class="col-md-2 col-6 mb-3">
                     <div class="stats-card text-center">
                         <div class="stats-number"><%= typeof stats !== 'undefined' && stats.completed ? stats.completed : 0 %></div>
-                        <div class="stats-label">Selesai</div>
+                        <div class="stats-label">Concluídas</div>
                     </div>
                 </div>
                 <div class="col-md-2 col-6 mb-3">
                     <div class="stats-card text-center">
                         <div class="stats-number"><%= typeof stats !== 'undefined' && stats.cancelled ? stats.cancelled : 0 %></div>
-                        <div class="stats-label">Dibatalkan</div>
+                        <div class="stats-label">Canceladas</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Search and Filter -->
             <div class="card installation-card mb-4">
                 <div class="card-body">
                     <form method="GET" class="row g-3">
                         <div class="col-md-4">
-                            <label for="search" class="form-label">Cari Job</label>
+                            <label for="search" class="form-label">Buscar Instalação</label>
                             <input type="text" class="form-control" id="search" name="search" 
                                    value="<%= typeof search !== 'undefined' ? search : '' %>" 
-                                   placeholder="Nomor job, nama pelanggan, atau nomor HP">
+                                   placeholder="Nº da instalação, nome do cliente ou telefone">
                         </div>
                         <div class="col-md-3">
                             <label for="status" class="form-label">Status</label>
                             <select class="form-select" id="status" name="status">
-                                <option value="">Semua Status</option>
-                                <option value="scheduled" <%= (typeof status !== 'undefined' && status === 'scheduled') ? 'selected' : '' %>>Terjadwal</option>
-                                <option value="assigned" <%= (typeof status !== 'undefined' && status === 'assigned') ? 'selected' : '' %>>Ditugaskan</option>
-                                <option value="in_progress" <%= (typeof status !== 'undefined' && status === 'in_progress') ? 'selected' : '' %>>Sedang Proses</option>
-                                <option value="completed" <%= (typeof status !== 'undefined' && status === 'completed') ? 'selected' : '' %>>Selesai</option>
-                                <option value="cancelled" <%= (typeof status !== 'undefined' && status === 'cancelled') ? 'selected' : '' %>>Dibatalkan</option>
+                                <option value="">Todos os Status</option>
+                                <option value="scheduled" <%= (typeof status !== 'undefined' && status === 'scheduled') ? 'selected' : '' %>>Agendada</option>
+                                <option value="assigned" <%= (typeof status !== 'undefined' && status === 'assigned') ? 'selected' : '' %>>Atribuída</option>
+                                <option value="in_progress" <%= (typeof status !== 'undefined' && status === 'in_progress') ? 'selected' : '' %>>Em Andamento</option>
+                                <option value="completed" <%= (typeof status !== 'undefined' && status === 'completed') ? 'selected' : '' %>>Concluída</option>
+                                <option value="cancelled" <%= (typeof status !== 'undefined' && status === 'cancelled') ? 'selected' : '' %>>Cancelada</option>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="technician" class="form-label">Teknisi</label>
+                            <label for="technician" class="form-label">Técnico</label>
                             <select class="form-select" id="technician" name="technician">
-                                <option value="">Semua Teknisi</option>
+                                <option value="">Todos os Técnicos</option>
                                 <% if (typeof technicians !== 'undefined' && technicians.length > 0) { %>
                                     <% technicians.forEach(tech => { %>
                                         <option value="<%= tech.id %>" <%= (typeof selectedTechnician !== 'undefined' && selectedTechnician == tech.id) ? 'selected' : '' %>>
@@ -136,7 +130,7 @@
                             <label class="form-label">&nbsp;</label>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-search me-2"></i>Cari
+                                    <i class="bi bi-search me-2"></i>Buscar
                                 </button>
                             </div>
                         </div>
@@ -144,12 +138,11 @@
                 </div>
             </div>
 
-            <!-- Installation Jobs List -->
             <div class="card installation-card">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bi bi-list-task me-2"></i>Daftar Job Instalasi
-                        <span class="badge bg-primary ms-2"><%= typeof installationJobs !== 'undefined' && installationJobs ? installationJobs.length : 0 %> job</span>
+                        <i class="bi bi-list-task me-2"></i>Lista de Instalações
+                        <span class="badge bg-primary ms-2"><%= typeof installationJobs !== 'undefined' && installationJobs ? installationJobs.length : 0 %> instalações</span>
                     </h5>
                 </div>
                 <div class="card-body">
@@ -167,20 +160,20 @@
                                     </div>
                                     <div class="col-md-2">
                                         <p class="mb-1"><i class="bi bi-calendar-event-fill me-2"></i><%= new Date(job.installation_date).toLocaleDateString() %></p>
-                                        <small class="text-muted"><%= job.technician_name || 'Belum ditugaskan' %></small>
+                                        <small class="text-muted"><%= job.technician_name || 'Não atribuído' %></small>
                                     </div>
                                     <div class="col-md-2">
                                         <span class="badge status-badge bg-<%= job.status %>"><%= job.status %></span>
                                     </div>
                                     <div class="col-md-2 text-end">
-                                        <a href="/admin/installations/edit/<%= job.id %>" class="btn btn-sm btn-outline-primary">Edit</a>
-                                        <a href="/admin/installations/delete/<%= job.id %>" class="btn btn-sm btn-outline-danger">Hapus</a>
+                                        <a href="/admin/installations/edit/<%= job.id %>" class="btn btn-sm btn-outline-primary">Editar</a>
+                                        <a href="/admin/installations/delete/<%= job.id %>" class="btn btn-sm btn-outline-danger">Excluir</a>
                                     </div>
                                 </div>
                             </div>
                         <% }); %>
                     <% } else { %>
-                        <p>Tidak ada jadwal instalasi.</p>
+                        <p>Nenhuma instalação agendada.</p>
                     <% } %>
                 </div>
             </div>
