@@ -6,7 +6,7 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 
 - **Gestão de Clientes:** Cadastro, edição e consulta de informações de clientes.
 - **Faturamento:** Geração e controle de faturas, com pagamentos online e baixa automática.
-- **Gateway WhatsApp:** Notificações e pagamentos diretamente pelo WhatsApp.
+- **Gateway WhatsApp:** Notificações, autoatendimento e pagamentos diretamente pelo WhatsApp.
 - **Integração GenieACS:** Provisionamento automático de equipamentos.
 - **Suporte a Mikrotik:** Gestão de usuários PPPoE e Hotspot.
 - **Painel Administrativo:** Interface para administradores, técnicos e atendentes.
@@ -14,7 +14,7 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 
 ## Instalação e Configuração
 
-Siga os passos abaixo para configurar e executar o projeto em seu ambiente de desenvolvimento.
+Siga os passos abaixo para configurar e executar o projeto em seu ambiente.
 
 ### Pré-requisitos
 
@@ -31,27 +31,28 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente de de
     ```
 
 2.  **Instale as dependências:**
-    O comando `npm install` irá instalar todas as bibliotecas necessárias.
+    O comando a seguir instalará todas as bibliotecas necessárias.
     ```bash
     npm install
     ```
-    > **Nota:** O projeto utiliza `sqlite3`. Dependendo do seu sistema operacional e da versão do Node.js, a instalação pode exigir ferramentas de compilação C++. Se encontrar erros durante a instalação do `sqlite3`, consulte o arquivo `SQLITE3_FIX_README.md` para obter guias de solução de problemas.
+    > **Nota sobre o `sqlite3`:** Este projeto utiliza o `sqlite3`. A instalação pode falhar se você não tiver as ferramentas de compilação C++ necessárias em seu sistema. Se o `npm install` falhar com um erro relacionado ao `sqlite3`, instale-o separadamente com o comando `npm install sqlite3` e veja o guia no arquivo `SQLITE3_FIX_README.md`.
 
 3.  **Configure as variáveis de ambiente:**
-    Copie o arquivo `settings.server.template.json` para `settings.json`. O sistema já vem configurado para usar um banco de dados SQLite (`database.sqlite`), então, para um início rápido, você não precisa alterar as configurações de banco de dados.
+    Copie o arquivo de exemplo `settings.server.template.json` para `settings.json`.
     ```bash
     cp settings.server.template.json settings.json
     ```
-    Posteriormente, ajuste este arquivo para configurar as chaves de API do WhatsApp, GenieACS, e outros serviços.
+    Para um início rápido, você não precisa alterar nada, pois ele já está configurado para usar um banco de dados SQLite local. No futuro, você pode editar este arquivo para configurar chaves de API do WhatsApp, GenieACS, etc.
 
-4.  **Configure o banco de dados:**
-    Execute o script de setup para criar o arquivo de banco de dados SQLite e aplicar as migrações iniciais.
+4.  **Configure o banco de dados (Primeira Instalação):**
+    Execute o script `new-server-setup.js` para criar o banco de dados e popular com dados iniciais (planos, clientes de exemplo, etc.) em português.
     ```bash
-    node scripts/setup-database.js
+    node scripts/new-server-setup.js
     ```
+    > **IMPORTANTE:** Este comando deve ser executado apenas na primeira vez. Se o script falhar por qualquer motivo e você precisar executá-lo novamente, primeiro você **DEVE** limpar o banco de dados executando `node scripts/complete-reset.js`.
 
 5.  **Inicie o servidor:**
-    - Para produção:
+    - Para produção (recomendado):
       ```bash
       npm start
       ```
@@ -67,7 +68,7 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente de de
 
 #### Busca com Typesense
 
-Para habilitar a funcionalidade de busca avançada no mapa (pesquisa por cliente, PPPoE, ODP, etc.), é necessário instalar e configurar o **Typesense**.
+Para habilitar a funcionalidade de busca avançada (pesquisa por cliente, PPPoE, ODP, etc.), é necessário instalar e configurar o **Typesense**.
 
 **a. Instale e execute o Typesense via Docker:**
 A maneira mais simples de executar o Typesense é usando Docker. Substitua `your-secret-api-key` por uma chave segura.

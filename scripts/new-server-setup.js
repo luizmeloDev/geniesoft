@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * New Server Setup - Setup awal untuk server baru
- * Membuat data default yang diperlukan untuk server baru tanpa data lama
+ * New Server Setup - Configuração inicial para um novo servidor
+ * Cria os dados padrão necessários para um novo servidor sem dados antigos.
  */
 
 const sqlite3 = require('sqlite3').verbose();
@@ -13,10 +13,10 @@ async function newServerSetup() {
     const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
     
     try {
-        console.log('🚀 NEW SERVER SETUP - Setup Awal Server Baru...\n');
+        console.log('🚀 NEW SERVER SETUP - Configuração Inicial do Novo Servidor...\n');
         
-        // Step 1: Set database optimizations
-        console.log('⚙️  Step 1: Setting database optimizations...');
+        // Passo 1: Otimizações do banco de dados
+        console.log('⚙️  Passo 1: Aplicando otimizações ao banco de dados...');
         await new Promise((resolve, reject) => {
             db.run('PRAGMA journal_mode=WAL', (err) => {
                 if (err) reject(err);
@@ -38,34 +38,34 @@ async function newServerSetup() {
             });
         });
         
-        console.log('   ✅ WAL mode enabled');
-        console.log('   ✅ Timeout configured');
-        console.log('   ✅ Foreign keys enabled');
+        console.log('   ✅ Modo WAL ativado');
+        console.log('   ✅ Timeout configurado');
+        console.log('   ✅ Chaves estrangeiras ativadas');
         
-        // Step 2: Create default packages
-        console.log('\n📦 Step 2: Creating default packages...');
+        // Passo 2: Criar pacotes padrão
+        console.log('\n📦 Passo 2: Criando pacotes padrão...');
         const packages = [
             {
-                name: 'Paket Internet Dasar',
+                name: 'Plano Básico',
                 speed: '10 Mbps',
-                price: 100000,
-                description: 'Paket internet dasar 10 Mbps unlimited',
+                price: 100.00,
+                description: 'Plano de internet básico de 10 Mbps ilimitado',
                 is_active: 1,
                 pppoe_profile: 'default'
             },
             {
-                name: 'Paket Internet Standard',
+                name: 'Plano Padrão',
                 speed: '20 Mbps',
-                price: 150000,
-                description: 'Paket internet standard 20 Mbps unlimited',
+                price: 150.00,
+                description: 'Plano de internet padrão de 20 Mbps ilimitado',
                 is_active: 1,
                 pppoe_profile: 'standard'
             },
             {
-                name: 'Paket Internet Premium',
+                name: 'Plano Premium',
                 speed: '50 Mbps',
-                price: 250000,
-                description: 'Paket internet premium 50 Mbps unlimited',
+                price: 250.00,
+                description: 'Plano de internet premium de 50 Mbps ilimitado',
                 is_active: 1,
                 pppoe_profile: 'premium'
             }
@@ -78,13 +78,13 @@ async function newServerSetup() {
                     INSERT INTO packages (name, speed, price, tax_rate, description, is_active, pppoe_profile) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 `, [
-                    pkg.name, pkg.speed, pkg.price, 11, pkg.description, pkg.is_active, pkg.pppoe_profile
+                    pkg.name, pkg.speed, pkg.price, 0, pkg.description, pkg.is_active, pkg.pppoe_profile
                 ], function(err) {
                     if (err) {
-                        console.error(`❌ Failed to create package ${pkg.name}:`, err.message);
+                        console.error(`❌ Falha ao criar o pacote ${pkg.name}:`, err.message);
                         reject(err);
                     } else {
-                        console.log(`   ✅ Package ${pkg.name} created (ID: ${this.lastID})`);
+                        console.log(`   ✅ Pacote ${pkg.name} criado (ID: ${this.lastID})`);
                         resolve(this.lastID);
                     }
                 });
@@ -92,67 +92,67 @@ async function newServerSetup() {
             packageIds.push(packageId);
         }
         
-        // Step 3: Create default collector
-        console.log('\n👤 Step 3: Creating default collector...');
+        // Passo 3: Criar coletor padrão
+        console.log('\n👤 Passo 3: Criando coletor padrão...');
         const collectorId = await new Promise((resolve, reject) => {
             db.run(`
                 INSERT INTO collectors (name, phone, email, commission_rate, status, created_at) 
                 VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             `, [
-                'Kolektor Utama',
-                '081234567890',
-                'kolektor@company.com',
-                10.0, // 10% commission
+                'Coletor Padrão',
+                '11912345678',
+                'coletor@empresa.com',
+                10.0, // 10% de comissão
                 'active'
             ], function(err) {
                 if (err) {
-                    console.error('❌ Failed to create default collector:', err.message);
+                    console.error('❌ Falha ao criar o coletor padrão:', err.message);
                     reject(err);
                 } else {
-                    console.log('   ✅ Default collector created (ID: ' + this.lastID + ')');
+                    console.log('   ✅ Coletor padrão criado (ID: ' + this.lastID + ')');
                     resolve(this.lastID);
                 }
             });
         });
         
-        // Step 4: Create default technician
-        console.log('\n🔧 Step 4: Creating default technician...');
+        // Passo 4: Criar técnico padrão
+        console.log('\n🔧 Passo 4: Criando técnico padrão...');
         const technicianId = await new Promise((resolve, reject) => {
             db.run(`
                 INSERT INTO technicians (name, phone, role, is_active, join_date, created_at) 
                 VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             `, [
-                'Administrator',
-                '081234567891',
-                'technician', // Use valid role
-                1 // is_active = true
+                'Administrador',
+                '11987654321',
+                'technician',
+                1
             ], function(err) {
                 if (err) {
-                    console.error('❌ Failed to create default technician:', err.message);
+                    console.error('❌ Falha ao criar o técnico padrão:', err.message);
                     reject(err);
                 } else {
-                    console.log('   ✅ Default technician created (ID: ' + this.lastID + ')');
+                    console.log('   ✅ Técnico padrão criado (ID: ' + this.lastID + ')');
                     resolve(this.lastID);
                 }
             });
         });
         
-        // Step 5: Create sample customers
-        console.log('\n👥 Step 5: Creating sample customers...');
+        // Passo 5: Criar clientes de exemplo
+        console.log('\n👥 Passo 5: Criando clientes de exemplo...');
         const customers = [
             {
-                username: 'pelanggan1',
-                name: 'Pelanggan Pertama',
-                phone: '081234567892',
-                email: 'pelanggan1@example.com',
-                address: 'Alamat Pelanggan Pertama'
+                username: 'cliente1',
+                name: 'Primeiro Cliente',
+                phone: '11999998888',
+                email: 'cliente1@example.com',
+                address: 'Endereço do Primeiro Cliente'
             },
             {
-                username: 'pelanggan2',
-                name: 'Pelanggan Kedua',
-                phone: '081234567893',
-                email: 'pelanggan2@example.com',
-                address: 'Alamat Pelanggan Kedua'
+                username: 'cliente2',
+                name: 'Segundo Cliente',
+                phone: '11988889999',
+                email: 'cliente2@example.com',
+                address: 'Endereço do Segundo Cliente'
             }
         ];
         
@@ -166,10 +166,10 @@ async function newServerSetup() {
                     customer.username, customer.name, customer.phone, customer.email, customer.address, 'active'
                 ], function(err) {
                     if (err) {
-                        console.error(`❌ Failed to create customer ${customer.username}:`, err.message);
+                        console.error(`❌ Falha ao criar o cliente ${customer.username}:`, err.message);
                         reject(err);
                     } else {
-                        console.log(`   ✅ Customer ${customer.username} created (ID: ${this.lastID})`);
+                        console.log(`   ✅ Cliente ${customer.username} criado (ID: ${this.lastID})`);
                         resolve(this.lastID);
                     }
                 });
@@ -177,25 +177,25 @@ async function newServerSetup() {
             customerIds.push(customerId);
         }
         
-        // Step 6: Create sample invoices
-        console.log('\n📄 Step 6: Creating sample invoices...');
+        // Passo 6: Criar faturas de exemplo
+        console.log('\n📄 Passo 6: Criando faturas de exemplo...');
         const invoices = [
             {
                 customer_id: customerIds[0],
                 package_id: packageIds[0],
-                amount: 100000,
+                amount: 100.00,
                 status: 'unpaid',
                 due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                invoice_number: 'INV-001',
+                invoice_number: 'FAT-001',
                 invoice_type: 'monthly'
             },
             {
                 customer_id: customerIds[1],
                 package_id: packageIds[1],
-                amount: 150000,
+                amount: 150.00,
                 status: 'unpaid',
                 due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                invoice_number: 'INV-002',
+                invoice_number: 'FAT-002',
                 invoice_type: 'monthly'
             }
         ];
@@ -211,10 +211,10 @@ async function newServerSetup() {
                     invoice.due_date, invoice.invoice_number, invoice.invoice_type
                 ], function(err) {
                     if (err) {
-                        console.error(`❌ Failed to create invoice ${invoice.invoice_number}:`, err.message);
+                        console.error(`❌ Falha ao criar a fatura ${invoice.invoice_number}:`, err.message);
                         reject(err);
                     } else {
-                        console.log(`   ✅ Invoice ${invoice.invoice_number} created (ID: ${this.lastID})`);
+                        console.log(`   ✅ Fatura ${invoice.invoice_number} criada (ID: ${this.lastID})`);
                         resolve(this.lastID);
                     }
                 });
@@ -222,17 +222,17 @@ async function newServerSetup() {
             invoiceIds.push(invoiceId);
         }
         
-        // Step 7: Create app settings
-        console.log('\n⚙️  Step 7: Creating app settings...');
+        // Passo 7: Criar configurações do aplicativo
+        console.log('\n⚙️  Passo 7: Criando configurações do aplicativo...');
         const settings = [
-            { key: 'company_name', value: 'ALIJAYA DIGITAL NETWORK' },
-            { key: 'company_phone', value: '081947215703' },
-            { key: 'company_email', value: 'info@alijaya.com' },
-            { key: 'company_address', value: 'Jl. Contoh Alamat No. 123' },
+            { key: 'company_name', value: 'Sua Empresa de Internet' },
+            { key: 'company_phone', value: '11900000000' },
+            { key: 'company_email', value: 'contato@suaempresa.com' },
+            { key: 'company_address', value: 'Rua Exemplo, 123, Sua Cidade' },
             { key: 'default_commission_rate', value: '10' },
-            { key: 'tax_rate', value: '11' },
-            { key: 'currency', value: 'IDR' },
-            { key: 'timezone', value: 'Asia/Jakarta' }
+            { key: 'tax_rate', value: '0' },
+            { key: 'currency', value: 'BRL' },
+            { key: 'timezone', value: 'America/Sao_Paulo' }
         ];
         
         for (const setting of settings) {
@@ -244,107 +244,45 @@ async function newServerSetup() {
                     setting.key, setting.value
                 ], function(err) {
                     if (err) {
-                        console.error(`❌ Failed to create setting ${setting.key}:`, err.message);
+                        console.error(`❌ Falha ao criar a configuração ${setting.key}:`, err.message);
                         reject(err);
                     } else {
-                        console.log(`   ✅ Setting ${setting.key} created`);
+                        console.log(`   ✅ Configuração ${setting.key} criada`);
                         resolve();
                     }
                 });
             });
         }
         
-        // Step 8: Final verification
-        console.log('\n📊 Step 8: Final verification...');
-        const finalStats = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT 
-                    'packages' as table_name, COUNT(*) as count 
-                FROM packages
-                UNION ALL
-                SELECT 
-                    'collectors' as table_name, COUNT(*) as count 
-                FROM collectors
-                UNION ALL
-                SELECT 
-                    'technicians' as table_name, COUNT(*) as count 
-                FROM technicians
-                UNION ALL
-                SELECT 
-                    'customers' as table_name, COUNT(*) as count 
-                FROM customers
-                UNION ALL
-                SELECT 
-                    'invoices' as table_name, COUNT(*) as count 
-                FROM invoices
-                UNION ALL
-                SELECT 
-                    'app_settings' as table_name, COUNT(*) as count 
-                FROM app_settings
-                UNION ALL
-                SELECT 
-                    'payments' as table_name, COUNT(*) as count 
-                FROM payments
-                UNION ALL
-                SELECT 
-                    'expenses' as table_name, COUNT(*) as count 
-                FROM expenses
-            `, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows || []);
-            });
-        });
-        
-        finalStats.forEach(stat => {
-            console.log(`   📊 ${stat.table_name}: ${stat.count} records`);
-        });
-        
-        console.log('\n🎉 NEW SERVER SETUP COMPLETED!');
-        console.log('=' .repeat(60));
-        console.log('✅ Default packages created');
-        console.log('✅ Default collector created');
-        console.log('✅ Default technician created');
-        console.log('✅ Sample customers created');
-        console.log('✅ Sample invoices created');
-        console.log('✅ App settings configured');
-        console.log('✅ Database optimizations applied');
-        console.log('✅ System ready for production');
-        console.log('=' .repeat(60));
-        
-        console.log('\n📋 Summary:');
-        console.log(`   📦 Packages: ${packageIds.length} packages created`);
-        console.log(`   👤 Collector: Kolektor Utama (10% commission)`);
-        console.log(`   🔧 Technician: Administrator (admin role)`);
-        console.log(`   👥 Customers: ${customerIds.length} sample customers`);
-        console.log(`   📄 Invoices: ${invoiceIds.length} sample invoices`);
-        console.log(`   ⚙️  Settings: ${settings.length} app settings`);
-        console.log(`   💰 Payments: 0 (clean start)`);
-        console.log(`   💸 Expenses: 0 (clean start)`);
-        
-        console.log('\n🚀 Server is ready for production use!');
-        console.log('   - Clean financial data');
-        console.log('   - Default packages available');
-        console.log('   - Collector system ready');
-        console.log('   - Keuangan akan benar dari awal');
-        console.log('   - Ready for new customers and payments');
+        console.log('\n🎉 CONFIGURAÇÃO DO NOVO SERVIDOR CONCLUÍDA!');
+        console.log('='.repeat(60));
+        console.log('✅ Pacotes padrão criados');
+        console.log('✅ Coletor padrão criado');
+        console.log('✅ Técnico padrão criado');
+        console.log('✅ Clientes de exemplo criados');
+        console.log('✅ Faturas de exemplo criadas');
+        console.log('✅ Configurações do aplicativo definidas');
+        console.log('✅ Otimizações do banco de dados aplicadas');
+        console.log('✅ Sistema pronto para produção');
+        console.log('='.repeat(60));
         
     } catch (error) {
-        console.error('❌ Error during new server setup:', error);
+        console.error('❌ Erro durante a configuração do novo servidor:', error);
         throw error;
     } finally {
         db.close();
     }
 }
 
-// Run if called directly
+// Executa se chamado diretamente
 if (require.main === module) {
     newServerSetup()
         .then(() => {
-            console.log('✅ New server setup completed');
+            console.log('✅ Configuração do novo servidor concluída com sucesso');
             process.exit(0);
         })
         .catch(error => {
-            console.error('❌ New server setup failed:', error);
+            console.error('❌ Falha na configuração do novo servidor:', error);
             process.exit(1);
         });
 }
