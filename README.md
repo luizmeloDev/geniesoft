@@ -17,8 +17,8 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 
 ## Últimas Atualizações
 
+- **Correção no Formulário de Instalação:** Resolvido o bug que impedia a criação de novas instalações. O botão "Novo Cliente" agora funciona, exibindo os campos necessários, e a busca por clientes existentes foi implementada, garantindo que os dados do cliente sejam enviados corretamente.
 - **Tradução Completa e Correções:**
-    - **Formulário de Instalação:** Corrigido um bug crítico que impedia a criação de novos agendamentos. As mensagens de erro foram traduzidas e o envio do formulário foi aprimorado para fornecer feedback claro em português.
     - **Scripts de Teste:** Todos os scripts de teste (`test-voucher-webhook-simple.js`, `test-voucher-payment.js`, `test-rxpower-extraction.js`) foram traduzidos para o português para facilitar a depuração e o desenvolvimento.
     - **Visualização de Mapa:** Adicionada a opção de visualização com imagens de satélite do Google Maps na seção "Mapa da Rede".
 
