@@ -15,6 +15,28 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 - **Painel Administrativo Aprimorado:** Interface para administradores, técnicos e atendentes, agora com um menu de navegação totalmente reorganizado, traduzido para o português e mais intuitivo.
 - **Portal do Cliente:** Área para o cliente consultar faturas e informações.
 
+## Como Usar
+
+### Fluxo Básico para Administradores
+
+1.  **Gestão de Instalações:**
+    -   Acesse a seção **"Instalações"** para agendar um novo serviço.
+    -   Clique em **"Nova Instalação"**, preencha os dados do cliente (ou selecione um existente) e atribua a um técnico.
+    -   Acompanhe o status da instalação (Pendente, Em Andamento, Concluída) no painel.
+
+2.  **Visualização da Rede:**
+    -   Utilize o **"Mapa da Rede"** para obter uma visão geográfica completa de sua infraestrutura.
+    -   Use a barra de busca para localizar rapidamente clientes, ODPs ou ONUs pelo nome, código ou outras informações.
+
+3.  **Gestão de Faturamento:**
+    -   O sistema gera as faturas automaticamente com base nos pacotes de cada cliente.
+    -   Os clientes podem pagar via gateway do WhatsApp, e a baixa é processada automaticamente no sistema.
+    -   Acesse a área de **"Faturamento"** para consultar o status dos pagamentos.
+
+4.  **Monitoramento e Suporte:**
+    -   Monitore a saúde geral da rede através do **"Dashboard"** principal.
+    -   Em caso de inadimplência, suspenda ou restaure serviços de clientes diretamente pelo painel, com integração automática ao Mikrotik.
+
 ## Últimas Atualizações
 
 - **Correção no Formulário de Instalação:** Resolvido o bug que impedia a criação de novas instalações. O botão "Novo Cliente" agora funciona, exibindo os campos necessários, e a busca por clientes existentes foi implementada, garantindo que os dados do cliente sejam enviados corretamente.
