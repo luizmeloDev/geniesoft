@@ -1,28 +1,27 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Kelola Teknisi - Admin Panel</title>
+    <title>Gerenciar Técnicos - Painel de Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/responsive-admin.css" rel="stylesheet">
-    <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <%- include('../partials/admin-responsive-sidebar', { page: 'technicians', settings: settings }) %>
+            <%- include('../partials/admin-responsive-sidebar', { page: 'technicians' }) %>
 
             <main class="col-md-10 ms-sm-auto main-content">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
-                        <i class="bi bi-people-fill me-2"></i>Kelola Teknisi
+                        <i class="bi bi-people-fill me-2"></i>Gerenciar Técnicos
                     </h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTechnicianModal">
-                            <i class="bi bi-plus-circle me-2"></i>Tambah Teknisi
+                            <i class="bi bi-plus-circle me-2"></i>Adicionar Técnico
                         </button>
                     </div>
                 </div>
@@ -31,12 +30,12 @@
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th>Nama</th>
-                                <th>Telepon</th>
-                                <th>Role</th>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Função</th>
                                 <th>Status</th>
-                                <th>Grup WhatsApp</th>
-                                <th>Aksi</th>
+                                <th>Grupo WhatsApp</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -48,24 +47,24 @@
                                         <td><span class="badge bg-primary"><%= technician.role %></span></td>
                                         <td>
                                             <span class="badge <%= technician.is_active ? 'bg-success' : 'bg-secondary' %>">
-                                                <%= technician.is_active ? 'Aktif' : 'Nonaktif' %>
+                                                <%= technician.is_active ? 'Ativo' : 'Inativo' %>
                                             </span>
                                         </td>
-                                        <td><%= technician.whatsapp_group_id || 'Default' %></td>
+                                        <td><%= technician.whatsapp_group_id || 'Padrão' %></td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="openEditModal('<%- technician.id %>')">Edit</button>
-                                                <button class="btn btn-outline-secondary" onclick="toggleStatus('<%- technician.id %>', '<%- technician.is_active ? 1 : 0 %>')">
-                                                    <%= technician.is_active ? 'Nonaktifkan' : 'Aktifkan' %>
+                                                <button class="btn btn-outline-primary" onclick="openEditModal('<%- technician.id %>')">Editar</button>
+                                                <button class="btn btn-outline-secondary" onclick="toggleStatus('<%- technician.id %>', '<%= technician.is_active ? 1 : 0 %>')">
+                                                    <%= technician.is_active ? 'Desativar' : 'Ativar' %>
                                                 </button>
-                                                <button class="btn btn-outline-danger" onclick="deleteTechnician('<%- technician.id %>')">Hapus</button>
+                                                <button class="btn btn-outline-danger" onclick="deleteTechnician('<%- technician.id %>')">Excluir</button>
                                             </div>
                                         </td>
                                     </tr>
                                 <% }); %>
                             <% } else { %>
                                 <tr>
-                                    <td colspan="6" class="text-center">Belum ada teknisi</td>
+                                    <td colspan="6" class="text-center">Nenhum técnico encontrado</td>
                                 </tr>
                             <% } %>
                         </tbody>
@@ -75,12 +74,121 @@
         </div>
     </div>
 
-    <!-- Add/Edit Modals and Scripts -->
+    <!-- Modais de Adicionar/Editar e Scripts -->
     <%- include('./modals/technician-modals') %>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Script to handle add, edit, delete, toggle status
+        const addModal = new bootstrap.Modal(document.getElementById('addTechnicianModal'));
+        const editModal = new bootstrap.Modal(document.getElementById('editTechnicianModal'));
+
+        function addTechnician() {
+            const form = document.getElementById('addTechnicianForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch('/admin/technicians/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    addModal.hide();
+                    location.reload();
+                } else {
+                    alert('Erro: ' + (result.message || 'Não foi possível adicionar o técnico.'));
+                }
+            })
+            .catch(err => alert('Ocorreu um erro de comunicação. Tente novamente.'));
+        }
+
+        async function openEditModal(id) {
+            try {
+                const response = await fetch(`/admin/api/technicians/${id}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const technician = result.technician;
+                    document.getElementById('editTechnicianId').value = technician.id;
+                    document.getElementById('edit_name').value = technician.name;
+                    document.getElementById('edit_phone').value = technician.phone;
+                    document.getElementById('edit_role').value = technician.role;
+                    document.getElementById('edit_whatsapp_group_id').value = technician.whatsapp_group_id || '';
+                    document.getElementById('edit_username').value = technician.username;
+                    document.getElementById('edit_password').value = '';
+                    editModal.show();
+                } else {
+                    alert('Erro ao buscar dados do técnico: ' + result.message);
+                }
+            } catch (err) {
+                alert('Ocorreu um erro ao carregar os dados para edição.');
+            }
+        }
+
+        function updateTechnician() {
+            const form = document.getElementById('editTechnicianForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            if (!data.password) {
+                delete data.password;
+            }
+
+            fetch(`/admin/technicians/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    editModal.hide();
+                    location.reload();
+                } else {
+                    alert('Erro ao atualizar: ' + result.message);
+                }
+            })
+            .catch(err => alert('Ocorreu um erro de comunicação. Tente novamente.'));
+        }
+
+        function toggleStatus(id, isActive) {
+            const action = isActive == 1 ? 'desativar' : 'ativar';
+            if (confirm(`Tem certeza que deseja ${action} este técnico?`)) {
+                fetch(`/admin/technicians/toggle-status/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + result.message);
+                    }
+                })
+                .catch(err => alert('Ocorreu um erro de comunicação. Tente novamente.'));
+            }
+        }
+
+        function deleteTechnician(id) {
+            if (confirm('Tem certeza que deseja excluir este técnico? Esta ação não pode ser desfeita.')) {
+                fetch(`/admin/technicians/delete/${id}`, {
+                    method: 'POST', // Usando POST para compatibilidade
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro ao excluir: ' + result.message);
+                    }
+                })
+                .catch(err => alert('Ocorreu um erro de comunicação. Tente novamente.'));
+            }
+        }
     </script>
 </body>
 </html>

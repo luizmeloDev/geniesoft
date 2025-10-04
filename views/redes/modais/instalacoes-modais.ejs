@@ -1,0 +1,116 @@
+<!-- views/redes/modais/instalacoes-modais.ejs -->
+
+<!-- Modal Agendar Instalação -->
+<div class="modal fade" id="scheduleInstallationModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scheduleModalLabel"><i class="bi bi-calendar-plus me-2"></i>Agendar Nova Instalação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleInstallationForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="schedule_client_id" class="form-label">Cliente</label>
+                            <select class="form-select" id="schedule_client_id" name="client_id" required>
+                                <!-- Opções de clientes carregadas dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="schedule_technician_id" class="form-label">Técnico Responsável</label>
+                            <select class="form-select" id="schedule_technician_id" name="technician_id" required>
+                                <!-- Opções de técnicos carregadas dinamicamente -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="schedule_address" class="form-label">Endereço da Instalação</label>
+                        <input type="text" class="form-control" id="schedule_address" name="address" required placeholder="Rua, Número, Bairro, Cidade">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="schedule_date" class="form-label">Data de Agendamento</label>
+                            <input type="datetime-local" class="form-control" id="schedule_date" name="scheduled_at" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="schedule_status" class="form-label">Status</label>
+                            <select class="form-select" id="schedule_status" name="status">
+                                <option value="Agendada">Agendada</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Concluída">Concluída</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="schedule_notes" class="form-label">Notas / Observações</label>
+                        <textarea class="form-control" id="schedule_notes" name="notes" rows="3" placeholder="Detalhes sobre a instalação, equipamentos, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="submitInstallation()">Agendar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Instalação -->
+<div class="modal fade" id="editInstallationModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel"><i class="bi bi-pencil-square me-2"></i>Editar Instalação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editInstallationForm">
+                    <input type="hidden" id="edit_installation_id" name="id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_client_id" class="form-label">Cliente</label>
+                            <select class="form-select" id="edit_client_id" name="client_id" required>
+                                <!-- Opções de clientes carregadas dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_technician_id" class="form-label">Técnico Responsável</label>
+                            <select class="form-select" id="edit_technician_id" name="technician_id" required>
+                                <!-- Opções de técnicos carregadas dinamicamente -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_address" class="form-label">Endereço da Instalação</label>
+                        <input type="text" class="form-control" id="edit_address" name="address" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_date" class="form-label">Data de Agendamento</label>
+                            <input type="datetime-local" class="form-control" id="edit_date" name="scheduled_at" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_status" class="form-label">Status</label>
+                            <select class="form-select" id="edit_status" name="status">
+                                <option value="Agendada">Agendada</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Concluída">Concluída</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_notes" class="form-label">Notas / Observações</label>
+                        <textarea class="form-control" id="edit_notes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="updateInstallation()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+</div>

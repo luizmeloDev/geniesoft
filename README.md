@@ -4,12 +4,15 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 
 ## Funcionalidades
 
+- **Dashboard de Análise de Rede:** A página inicial do admin é um centro de análise que exibe a saúde da rede, utilização de ODPs, status dos cabos e alertas em tempo real.
+- **Mapa da Rede Interativo com Busca:** Visualize toda a sua infraestrutura de rede, incluindo clientes, ONUs, ODPs e cabos. A nova barra de pesquisa permite localizar clientes instantaneamente por nome, CPF, telefone ou código.
+- **Gerenciamento de Instalações:** Uma seção completa para agendar, atribuir e acompanhar as instalações de novos clientes, com filtros por status, cliente e data.
 - **Gestão de Clientes:** Cadastro, edição e consulta de informações de clientes.
 - **Faturamento:** Geração e controle de faturas, com pagamentos online e baixa automática.
 - **Gateway WhatsApp:** Notificações, autoatendimento e pagamentos diretamente pelo WhatsApp.
 - **Integração GenieACS:** Provisionamento automático de equipamentos.
 - **Suporte a Mikrotik:** Gestão de usuários PPPoE e Hotspot.
-- **Painel Administrativo:** Interface para administradores, técnicos e atendentes.
+- **Painel Administrativo Aprimorado:** Interface para administradores, técnicos e atendentes, agora com um menu de navegação totalmente reorganizado, traduzido para o português e mais intuitivo.
 - **Portal do Cliente:** Área para o cliente consultar faturas e informações.
 
 ## Instalação e Configuração
@@ -20,7 +23,7 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente.
 
 - [Node.js](https://nodejs.org/) (versão 14 ou superior)
 - [NPM](https://www.npmjs.com/) (geralmente instalado com o Node.js)
-- **Opcional:** [Docker](https://www.docker.com/products/docker-desktop/) (para a busca com Typesense)
+- **Opcional:** [Docker](https://www.docker.com/) (para a busca com Typesense)
 
 ### Passos
 

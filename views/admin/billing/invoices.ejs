@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Tagihan - Admin Portal</title>
+    <title>Gerenciar Faturas - Portal do Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <!-- Admin Mobile Optimizations -->
+    <!-- Otimizações para Admin Mobile -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
     <style>
         .toast {
@@ -26,27 +26,27 @@
             <!-- Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
+            <!-- Conteúdo Principal -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
-                        <i class="bx bx-receipt"></i> Kelola Tagihan
+                        <i class="bx bx-receipt"></i> Gerenciar Faturas
                     </h1>
                     <div class="d-flex gap-2">
                         <button id="bulkDeleteBtn" class="btn btn-danger" disabled>
-                            <i class="bx bx-trash"></i> Hapus Terpilih
+                            <i class="bx bx-trash"></i> Excluir Selecionadas
                         </button>
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
-                            <i class="bx bx-plus"></i> Buat Tagihan
+                            <i class="bx bx-plus"></i> Criar Fatura
                         </button>
                     </div>
                 </div>
 
-                <!-- Invoice Table -->
+                <!-- Tabela de Faturas -->
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="bx bx-list-ul"></i> Daftar Tagihan
+                            <i class="bx bx-list-ul"></i> Lista de Faturas
                         </h5>
                     </div>
                     <div class="card-body">
@@ -57,14 +57,14 @@
                                         <th style="width:36px;">
                                             <input type="checkbox" id="selectAllInvoices" />
                                         </th>
-                                        <th>No. Tagihan</th>
-                                        <th>Pelanggan</th>
-                                        <th>Paket</th>
-                                        <th>Jumlah</th>
+                                        <th>Nº da Fatura</th>
+                                        <th>Cliente</th>
+                                        <th>Plano</th>
+                                        <th>Valor</th>
                                         <th>Status</th>
-                                        <th>Jatuh Tempo</th>
-                                        <th>Tanggal Dibuat</th>
-                                        <th>Aksi</th>
+                                        <th>Vencimento</th>
+                                        <th>Data de Criação</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -84,29 +84,29 @@
                                                 </td>
                                                 <td><%= invoice.package_name %></td>
                                                 <td class="currency-format" data-amount="<%= invoice.amount %>">
-                                                    Rp <%= Math.round(parseFloat(invoice.amount)).toLocaleString('id-ID') %>
+                                                    R$ <%= Math.round(parseFloat(invoice.amount)).toLocaleString('pt-BR') %>
                                                 </td>
                                                 <td>
                                                     <% if (invoice.status === 'paid') { %>
-                                                        <span class="badge bg-success">Lunas</span>
+                                                        <span class="badge bg-success">Paga</span>
                                                     <% } else if (invoice.status === 'unpaid') { %>
                                                         <% if (new Date(invoice.due_date) < new Date()) { %>
-                                                            <span class="badge bg-danger">Terlambat</span>
+                                                            <span class="badge bg-danger">Atrasada</span>
                                                         <% } else { %>
-                                                            <span class="badge bg-warning">Belum Lunas</span>
+                                                            <span class="badge bg-warning">Não Paga</span>
                                                         <% } %>
                                                     <% } %>
                                                 </td>
                                                 <td>
                                                     <% if (new Date(invoice.due_date) < new Date() && invoice.status === 'unpaid') { %>
                                                         <span class="text-danger">
-                                                            <%= new Date(invoice.due_date).toLocaleDateString('id-ID') %>
+                                                            <%= new Date(invoice.due_date).toLocaleDateString('pt-BR') %>
                                                         </span>
                                                     <% } else { %>
-                                                        <%= new Date(invoice.due_date).toLocaleDateString('id-ID') %>
+                                                        <%= new Date(invoice.due_date).toLocaleDateString('pt-BR') %>
                                                     <% } %>
                                                 </td>
-                                                <td><%= new Date(invoice.created_at).toLocaleDateString('id-ID') %></td>
+                                                <td><%= new Date(invoice.created_at).toLocaleDateString('pt-BR') %></td>
                                                 <td>
                                                     <div class="btn-group" role="group">
                                                         <a href="/admin/billing/invoices/<%= invoice.id %>" class="btn btn-sm btn-primary">
@@ -137,20 +137,20 @@
         </div>
     </div>
 
-    <!-- Add Invoice Modal -->
+    <!-- Modal Adicionar Fatura -->
     <div class="modal fade" id="addInvoiceModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Buat Tagihan Baru</h5>
+                    <h5 class="modal-title">Criar Nova Fatura</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="addInvoiceForm">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="customer_id" class="form-label">Pelanggan</label>
+                            <label for="customer_id" class="form-label">Cliente</label>
                             <select class="form-control" id="customer_id" name="customer_id" required>
-                                <option value="">Pilih Pelanggan</option>
+                                <option value="">Selecione um Cliente</option>
                                 <% if (customers && customers.length > 0) { %>
                                     <% customers.forEach(function(customer) { %>
                                         <option value="<%= customer.id %>">
@@ -161,21 +161,21 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="package_id" class="form-label">Paket</label>
+                            <label for="package_id" class="form-label">Plano</label>
                             <select class="form-control" id="package_id" name="package_id" required>
-                                <option value="">Pilih Paket</option>
+                                <option value="">Selecione um Plano</option>
                                 <% if (packages && packages.length > 0) { %>
                                     <% packages.forEach(function(package) { %>
                                         <option value="<%= package.id %>" 
                                                 data-price="<%= package.price %>"
                                                 data-tax-rate="<%= package.tax_rate !== null && package.tax_rate !== undefined ? package.tax_rate : 11.00 %>">
-                                            <%= package.name %> - Rp <%= Math.round(parseFloat(package.price)).toLocaleString('id-ID') %>
+                                            <%= package.name %> - R$ <%= Math.round(parseFloat(package.price)).toLocaleString('pt-BR') %>
                                             <% if (package.tax_rate === 0) { %>
-                                                (Tidak Ada PPN)
+                                                (Sem Impostos)
                                             <% } else if (package.tax_rate) { %>
-                                                (PPN <%= package.tax_rate.toFixed(2) %>%)
+                                                (Imposto <%= package.tax_rate.toFixed(2) %>%)
                                             <% } else { %>
-                                                (PPN 11.00%)
+                                                (Imposto 11.00%)
                                             <% } %>
                                         </option>
                                     <% }); %>
@@ -183,32 +183,32 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="base_amount" class="form-label">Harga Dasar (Sebelum PPN)</label>
+                            <label for="base_amount" class="form-label">Preço Base (Antes dos Impostos)</label>
                             <input type="number" class="form-control" id="base_amount" readonly>
                         </div>
                         <div class="mb-3">
-                            <label for="tax_rate_display" class="form-label">PPN</label>
+                            <label for="tax_rate_display" class="form-label">Imposto</label>
                             <input type="text" class="form-control" id="tax_rate_display" readonly>
                         </div>
                         <div class="mb-3">
-                            <label for="amount" class="form-label">Jumlah (Setelah PPN)</label>
+                            <label for="amount" class="form-label">Valor (Depois dos Impostos)</label>
                             <input type="number" class="form-control" id="amount" name="amount" required>
                         </div>
-                        <!-- Hidden fields for PPN data -->
+                        <!-- Campos ocultos para dados de imposto -->
                         <input type="hidden" id="base_amount_hidden" name="base_amount">
                         <input type="hidden" id="tax_rate_hidden" name="tax_rate">
                         <div class="mb-3">
-                            <label for="due_date" class="form-label">Jatuh Tempo</label>
+                            <label for="due_date" class="form-label">Vencimento</label>
                             <input type="date" class="form-control" id="due_date" name="due_date" required>
                         </div>
                         <div class="mb-3">
-                            <label for="notes" class="form-label">Deskripsi</label>
+                            <label for="notes" class="form-label">Descrição</label>
                             <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Buat Tagihan</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Criar Fatura</button>
                     </div>
                 </form>
             </div>
@@ -223,28 +223,13 @@
         $(document).ready(function() {
             $('#invoicesTable').DataTable({
                 language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
-                    emptyTable: "Tidak ada data yang tersedia",
-                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 entri",
-                    infoFiltered: "(disaring dari _MAX_ entri keseluruhan)",
-                    lengthMenu: "Tampilkan _MENU_ entri",
-                    loadingRecords: "Sedang memuat...",
-                    processing: "Sedang memproses...",
-                    search: "Cari:",
-                    zeroRecords: "Tidak ditemukan data yang sesuai",
-                    paginate: {
-                        first: "Pertama",
-                        last: "Terakhir",
-                        next: "Selanjutnya",
-                        previous: "Sebelumnya"
-                    }
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json',
                 },
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]]
             });
 
-            // Auto-fill amount when package is selected
+            // Preencher automaticamente o valor quando o plano é selecionado
             $('#package_id').on('change', function() {
                 const selectedOption = $(this).find('option:selected');
                 const price = parseFloat(selectedOption.data('price')) || 0;
@@ -252,29 +237,26 @@
                 
                 $('#base_amount').val(price);
                 
-                // Handle PPN = 0 correctly
                 if (taxRate === 0) {
-                    $('#tax_rate_display').val('0% (Tidak Ada PPN)');
-                    $('#amount').val(price); // No tax added
+                    $('#tax_rate_display').val('0% (Sem Impostos)');
+                    $('#amount').val(price); // Nenhum imposto adicionado
                 } else {
                     $('#tax_rate_display').val(`${taxRate}%`);
                     const amount = price * (1 + taxRate / 100);
-                    // Round to integer (hilangkan desimal)
                     $('#amount').val(Math.round(amount));
                 }
                 
-                // Set hidden fields for PPN data
                 $('#base_amount_hidden').val(price);
                 $('#tax_rate_hidden').val(taxRate);
             });
 
-            // Set default due date to 30 days from now
+            // Definir data de vencimento padrão para 30 dias a partir de agora
             const today = new Date();
             const dueDate = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
             $('#due_date').val(dueDate.toISOString().split('T')[0]);
         });
 
-        // Add Invoice Form
+        // Formulário para Adicionar Fatura
         $('#addInvoiceForm').on('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -283,10 +265,9 @@
                 urlParams.append(key, value);
             }
             
-            // Loading state
             const $btn = $(this).find('button[type="submit"]');
             const originalText = $btn.html();
-            $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Memproses...');
+            $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Processando...');
             
             fetch('/admin/billing/invoices', {
                 method: 'POST',
@@ -296,27 +277,25 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast('success', 'Tagihan Berhasil', 'Tagihan berhasil dibuat');
+                    showToast('success', 'Fatura Criada', 'A fatura foi criada com sucesso');
                     $('#addInvoiceModal').modal('hide');
-                    // Update table tanpa reload
                     setTimeout(() => {
                         location.reload();
                     }, 1500);
                 } else {
-                    showToast('error', 'Gagal Membuat Tagihan', data.message || 'Gagal membuat tagihan');
+                    showToast('error', 'Falha ao Criar', data.message || 'Não foi possível criar a fatura');
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                showToast('error', 'Error', 'Terjadi kesalahan saat membuat tagihan');
+                console.error('Erro:', error);
+                showToast('error', 'Erro', 'Ocorreu um erro ao criar a fatura');
             })
             .finally(() => {
-                // Reset button
                 $btn.prop('disabled', false).html(originalText);
             });
         });
 
-        // Bulk Delete Selected Invoices
+        // Exclusão em Massa de Faturas Selecionadas
         (function initBulkDelete(){
             const bulkBtn = document.getElementById('bulkDeleteBtn');
             const selectAll = document.getElementById('selectAllInvoices');
@@ -350,8 +329,8 @@
             bulkBtn.addEventListener('click', async () => {
                 const ids = getSelected();
                 if (!ids.length) return;
-                if (!confirm(`Hapus ${ids.length} tagihan terpilih?`)) return;
-                showToast('info', 'Memproses...', 'Menghapus tagihan terpilih');
+                if (!confirm(`Excluir ${ids.length} faturas selecionadas?`)) return;
+                showToast('info', 'Processando...', 'Excluindo faturas selecionadas');
                 try {
                     const resp = await fetch('/admin/billing/invoices/bulk-delete', {
                         method: 'POST',
@@ -364,32 +343,30 @@
                         data = await resp.json();
                     } else {
                         const text = await resp.text();
-                        throw new Error(text?.slice(0, 200) || 'Respons tidak valid');
+                        throw new Error(text?.slice(0, 200) || 'Resposta inválida do servidor');
                     }
-                    if (!resp.ok || !data?.success) throw new Error(data?.message || 'Gagal hapus massal');
-                    showToast('success', 'Selesai', `Berhasil menghapus ${data.summary.success} dari ${data.summary.total} tagihan`);
+                    if (!resp.ok || !data?.success) throw new Error(data?.message || 'Falha na exclusão em massa');
+                    showToast('success', 'Concluído', `Sucesso ao excluir ${data.summary.success} de ${data.summary.total} faturas`);
                     setTimeout(() => location.reload(), 1200);
                 } catch (e) {
                     console.error(e);
-                    showToast('error', 'Gagal', e.message || 'Terjadi kesalahan saat hapus massal');
+                    showToast('error', 'Falha', e.message || 'Ocorreu um erro na exclusão em massa');
                 }
             });
         })();
 
-        // Mark as Paid
+        // Marcar como Paga
         function markAsPaid(invoiceId) {
-            if (confirm('Tandai tagihan ini sebagai lunas?')) {
-                showToast('info', 'Memproses...', 'Menandai tagihan sebagai lunas');
+            if (confirm('Marcar esta fatura como paga?')) {
+                showToast('info', 'Processando...', 'Marcando fatura como paga');
                 
-                // 1) Get invoice amount
                 fetch(`/admin/billing/api/invoices/${invoiceId}`)
                 .then(response => response.json())
                 .then(inv => {
                     if (!inv || !inv.success || !inv.invoice) {
-                        throw new Error(inv?.message || 'Gagal mengambil data tagihan');
+                        throw new Error(inv?.message || 'Falha ao obter dados da fatura');
                     }
                     const amount = parseFloat(inv.invoice.amount);
-                    // 2) Record payment (this will also update invoice status server-side)
                     return fetch('/admin/billing/payments', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -405,22 +382,22 @@
                 .then(response => response.json())
                 .then(result => {
                     if (!result || !result.success) {
-                        throw new Error(result?.message || 'Gagal menandai tagihan');
+                        throw new Error(result?.message || 'Falha ao marcar fatura como paga');
                     }
-                    showToast('success', 'Tagihan Lunas', 'Tagihan berhasil ditandai lunas');
+                    showToast('success', 'Fatura Paga', 'A fatura foi marcada como paga com sucesso');
                     setTimeout(() => { location.reload(); }, 1500);
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    showToast('error', 'Error', error?.message || 'Terjadi kesalahan saat menandai tagihan');
+                    console.error('Erro:', error);
+                    showToast('error', 'Erro', error?.message || 'Ocorreu um erro ao marcar a fatura');
                 });
             }
         }
 
-        // Delete Invoice
+        // Excluir Fatura
         function deleteInvoice(invoiceId) {
-            if (confirm('Apakah Anda yakin ingin menghapus tagihan ini?')) {
-                showToast('info', 'Memproses...', 'Menghapus tagihan');
+            if (confirm('Você tem certeza que deseja excluir esta fatura?')) {
+                showToast('info', 'Processando...', 'Excluindo fatura');
                 
                 fetch(`/admin/billing/invoices/${invoiceId}`, {
                     method: 'DELETE'
@@ -428,28 +405,26 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showToast('success', 'Tagihan Dihapus', 'Tagihan berhasil dihapus');
-                        // Update table tanpa reload
+                        showToast('success', 'Fatura Excluída', 'A fatura foi excluída com sucesso');
                         setTimeout(() => {
                             location.reload();
                         }, 1500);
                     } else {
-                        showToast('error', 'Gagal Menghapus', data.message || 'Gagal menghapus tagihan');
+                        showToast('error', 'Falha ao Excluir', data.message || 'Não foi possível excluir a fatura');
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    showToast('error', 'Error', 'Terjadi kesalahan saat menghapus tagihan');
+                    console.error('Erro:', error);
+                    showToast('error', 'Erro', 'Ocorreu um erro ao excluir a fatura');
                 });
             }
         }
 
-        // Toast Container
+        // Container de Toast
         const toastContainer = document.createElement('div');
         toastContainer.id = 'toast-container';
         document.body.appendChild(toastContainer);
 
-        // Fungsi toast notification
         function showToast(type, title, message, duration = 5000) {
             const toastId = 'toast-' + Date.now();
             const iconClass = type === 'success' ? 'bi-check-circle' : type === 'error' ? 'bi-x-circle' : 'bi-info-circle';
@@ -473,116 +448,50 @@
             const toast = new bootstrap.Toast(toastElement, { delay: duration });
             toast.show();
             
-            // Auto remove after hide
             toastElement.addEventListener('hidden.bs.toast', () => {
                 toastElement.remove();
             });
         }
     </script>
     
-    <!-- Currency Helper -->
     <%- include('../../partials/currency-helper') %>
 
-    <!-- Bottom Navigation for Mobile -->
-    <nav class="bottom-nav d-md-none" style="position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, rgba(11,20,55,0.96), rgba(15,28,79,0.96)); border-top: 1px solid rgba(255,255,255,0.08); height: 70px; display: grid; grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr; z-index: 1000; backdrop-filter: blur(10px); padding: 8px 0;">
-        <a class="nav-item" href="/admin/billing/mobile/customers" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-            <i class="bi bi-people" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Pelanggan</span>
+    <!-- Navegação Inferior para Mobile -->
+    <nav class="bottom-nav d-md-none">
+        <a class="nav-item" href="/admin/billing/mobile/customers">
+            <i class="bi bi-people"></i>
+            <span>Clientes</span>
         </a>
-        <a class="nav-item active" href="/admin/billing/mobile/invoices" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-            <i class="bi bi-receipt" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Tagihan</span>
+        <a class="nav-item active" href="/admin/billing/mobile/invoices">
+            <i class="bi bi-receipt"></i>
+            <span>Faturas</span>
         </a>
-        <a class="nav-item home-button" href="/admin/billing/mobile" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; width: 56px; height: 56px; margin: -8px auto 0 auto; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transform: translateY(-4px); border: 2px solid rgba(255,255,255,0.2); position: relative; overflow: hidden;">
-            <i class="bi bi-house" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Home</span>
+        <a class="nav-item home-button" href="/admin/billing/mobile">
+            <i class="bi bi-house"></i>
+            <span>Início</span>
         </a>
-        <a class="nav-item" href="/admin/billing/mobile/payments" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-            <i class="bi bi-credit-card" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Bayar</span>
+        <a class="nav-item" href="/admin/billing/mobile/payments">
+            <i class="bi bi-credit-card"></i>
+            <span>Pagar</span>
         </a>
-        <a class="nav-item" href="/admin/billing/mobile/map" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-            <i class="bi bi-geo-alt" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Map</span>
+        <a class="nav-item" href="/admin/billing/mobile/map">
+            <i class="bi bi-geo-alt"></i>
+            <span>Mapa</span>
         </a>
     </nav>
 
     <style>
-        /* Bottom Navigation Styles */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(180deg, rgba(11,20,55,0.96), rgba(15,28,79,0.96));
-            border-top: 1px solid rgba(255,255,255,0.08);
-            height: 70px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            padding: 8px 0;
-        }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-item:hover {
-            color: #4cc9f0;
-            transform: translateY(-2px);
-        }
-        
-        .nav-item.active {
-            color: #4cc9f0;
-        }
-        
-        .nav-item.home-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            width: 56px;
-            height: 56px;
-            margin: -8px auto 0 auto;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            transform: translateY(-4px);
-            border: 2px solid rgba(255,255,255,0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .nav-item.home-button:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-        
-        .nav-item.home-button.active {
-            color: white;
-        }
-        
-        /* Add padding to body for bottom nav */
-        body {
-            padding-bottom: 80px;
-        }
-        
-        @media (min-width: 768px) {
-            .bottom-nav {
-                display: none;
-            }
-            
-            body {
-                padding-bottom: 0;
-            }
-        }
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(11,20,55,0.96),rgba(15,28,79,0.96));border-top:1px solid rgba(255,255,255,0.08);height:70px;display:grid;grid-template-columns:1fr 1fr 1.5fr 1fr 1fr;z-index:1000;backdrop-filter:blur(10px);padding:8px 0;}
+        .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:white;text-decoration:none;transition:all 0.3s ease;}
+        .nav-item:hover{color:#4cc9f0;transform:translateY(-2px);}
+        .nav-item.active{color:#4cc9f0;}
+        .nav-item.home-button{background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:50%;width:56px;height:56px;margin:-8px auto 0 auto;box-shadow:0 4px 15px rgba(102, 126, 234, 0.4);transform:translateY(-4px);border:2px solid rgba(255,255,255,0.2);position:relative;overflow:hidden;}
+        .nav-item.home-button:hover{transform:translateY(-6px);box-shadow:0 6px 20px rgba(102, 126, 234, 0.6);}
+        .nav-item.home-button.active{color:white;}
+        body{padding-bottom:80px;}
+        @media(min-width:768px){.bottom-nav{display:none;}body{padding-bottom:0;}}
     </style>
-    
-    <!-- Mobile Bottom Navbar -->
+
     <%- include('../../partials/admin-mobile-navbar', { currentPage: 'invoices' }) %>
 </body>
 </html>

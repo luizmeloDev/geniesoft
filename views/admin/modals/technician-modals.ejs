@@ -1,0 +1,96 @@
+<!-- Modal Adicionar Técnico -->
+<div class="modal fade" id="addTechnicianModal" tabindex="-1" aria-labelledby="addTechnicianModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTechnicianModalLabel">Adicionar Novo Técnico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTechnicianForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Telefone</label>
+                        <input type="text" class="form-control" id="phone" name="phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Função</label>
+                        <select class="form-select" id="role" name="role">
+                            <option value="technician">Técnico</option>
+                            <option value="installer">Instalador</option>
+                            <option value="field_support">Suporte de Campo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="whatsapp_group_id" class="form-label">ID do Grupo do WhatsApp</label>
+                        <input type="text" class="form-control" id="whatsapp_group_id" name="whatsapp_group_id" placeholder="Opcional">
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Usuário</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="addTechnician()">Adicionar Técnico</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Técnico -->
+<div class="modal fade" id="editTechnicianModal" tabindex="-1" aria-labelledby="editTechnicianModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTechnicianModalLabel">Editar Técnico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTechnicianForm">
+                    <input type="hidden" id="editTechnicianId" name="id">
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_phone" class="form-label">Telefone</label>
+                        <input type="text" class="form-control" id="edit_phone" name="phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_role" class="form-label">Função</label>
+                        <select class="form-select" id="edit_role" name="role">
+                            <option value="technician">Técnico</option>
+                            <option value="installer">Instalador</option>
+                            <option value="field_support">Suporte de Campo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_whatsapp_group_id" class="form-label">ID do Grupo do WhatsApp</label>
+                        <input type="text" class="form-control" id="edit_whatsapp_group_id" name="whatsapp_group_id" placeholder="Opcional">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_username" class="form-label">Usuário</label>
+                        <input type="text" class="form-control" id="edit_username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password" class="form-label">Nova Senha (deixe em branco para não alterar)</label>
+                        <input type="password" class="form-control" id="edit_password" name="password">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="updateTechnician()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+</div>

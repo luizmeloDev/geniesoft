@@ -1,3 +1,5 @@
 build/geniesoft-isp-source.tar.gz
 /geniesoft-isp-source.tar.gz
 Jakefile
+node_modules
+node_modules

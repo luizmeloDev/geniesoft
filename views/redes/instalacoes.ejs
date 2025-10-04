@@ -1,0 +1,280 @@
+<!-- views/redes/instalacoes.ejs -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciamento de Instalações - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
+    <link href="/css/admin-mobile.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <%- include('../partials/admin-responsive-sidebar', { page: 'installations' }) %>
+
+            <main class="col-md-10 ms-sm-auto main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bi bi-calendar-check-fill me-2"></i>Gerenciamento de Instalações
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scheduleInstallationModal">
+                            <i class="bi bi-plus-circle me-2"></i>Agendar Nova Instalação
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="filterClient" placeholder="Filtrar por nome do cliente, técnico ou endereço...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="filterStatus">
+                            <option value="">Todos os Status</option>
+                            <option value="Agendada">Agendada</option>
+                            <option value="Em Andamento">Em Andamento</option>
+                            <option value="Concluída">Concluída</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" class="form-control" id="filterDate">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Endereço</th>
+                                <th>Técnico</th>
+                                <th>Data Agendada</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="installationsTableBody">
+                            <!-- Dados carregados via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Inclusão dos Modais -->
+    <%- include('./modais/instalacoes-modais') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const scheduleModal = new bootstrap.Modal(document.getElementById('scheduleInstallationModal'));
+        const editModal = new bootstrap.Modal(document.getElementById('editInstallationModal'));
+        let allInstallations = []; // Armazena todas as instalações para filtragem
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInitialData();
+            setupFilters();
+        });
+
+        async function loadInitialData() {
+            await Promise.all([
+                loadInstallations(),
+                populateSelectOptions('schedule_client_id', '/api/clients', 'id', 'name'),
+                populateSelectOptions('schedule_technician_id', '/admin/api/technicians', 'id', 'name'),
+                populateSelectOptions('edit_client_id', '/api/clients', 'id', 'name'),
+                populateSelectOptions('edit_technician_id', '/admin/api/technicians', 'id', 'name')
+            ]);
+        }
+
+        async function loadInstallations() {
+            try {
+                const response = await fetch('/admin/api/installations');
+                const result = await response.json();
+                if (result.success) {
+                    allInstallations = result.installations;
+                    renderTable(allInstallations);
+                } else {
+                    alert('Erro ao carregar instalações: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro de rede ao carregar instalações:', error);
+                alert('Não foi possível buscar os dados das instalações.');
+            }
+        }
+
+        async function populateSelectOptions(selectId, url, valueField, textField) {
+            const select = document.getElementById(selectId);
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                const data = result.technicians || result.clients || [];
+
+                select.innerHTML = `<option value="">Selecione...</option>`;
+                data.forEach(item => {
+                    select.innerHTML += `<option value="${item[valueField]}">${item[textField]}</option>`;
+                });
+            } catch (error) {
+                console.error(`Erro ao popular ${selectId}:`, error);
+            }
+        }
+
+        function renderTable(installations) {
+            const tableBody = document.getElementById('installationsTableBody');
+            tableBody.innerHTML = '';
+            if (installations.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhuma instalação encontrada.</td></tr>';
+                return;
+            }
+
+            installations.forEach(inst => {
+                const statusBadges = {
+                    'Agendada': 'bg-primary',
+                    'Em Andamento': 'bg-info',
+                    'Concluída': 'bg-success',
+                    'Cancelada': 'bg-danger'
+                };
+                const statusClass = statusBadges[inst.status] || 'bg-secondary';
+                const formattedDate = new Date(inst.scheduled_at).toLocaleString('pt-BR');
+
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${inst.client_name || 'N/A'}</td>
+                        <td>${inst.address}</td>
+                        <td>${inst.technician_name || 'N/A'}</td>
+                        <td>${formattedDate}</td>
+                        <td><span class="badge ${statusClass}">${inst.status}</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="openEditModal(${inst.id})">Editar</button>
+                                <button class="btn btn-outline-danger" onclick="cancelInstallation(${inst.id})">Cancelar</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function setupFilters() {
+            document.getElementById('filterClient').addEventListener('input', applyFilters);
+            document.getElementById('filterStatus').addEventListener('change', applyFilters);
+            document.getElementById('filterDate').addEventListener('change', applyFilters);
+        }
+
+        function applyFilters() {
+            const clientFilter = document.getElementById('filterClient').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+            const dateFilter = document.getElementById('filterDate').value;
+
+            const filteredData = allInstallations.filter(inst => {
+                const clientMatch = inst.client_name?.toLowerCase().includes(clientFilter) || inst.technician_name?.toLowerCase().includes(clientFilter) || inst.address?.toLowerCase().includes(clientFilter);
+                const statusMatch = !statusFilter || inst.status === statusFilter;
+                const dateMatch = !dateFilter || inst.scheduled_at.startsWith(dateFilter);
+
+                return clientMatch && statusMatch && dateMatch;
+            });
+
+            renderTable(filteredData);
+        }
+
+        async function submitInstallation() {
+            const form = document.getElementById('scheduleInstallationForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/admin/api/installations/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    scheduleModal.hide();
+                    loadInstallations();
+                    alert('Instalação agendada com sucesso!');
+                } else {
+                    alert('Erro ao agendar: ' + result.message);
+                }
+            } catch (error) {
+                alert('Ocorreu um erro de comunicação.');
+            }
+        }
+
+        async function openEditModal(id) {
+            try {
+                const response = await fetch(`/admin/api/installations/${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const inst = result.installation;
+                    document.getElementById('edit_installation_id').value = inst.id;
+                    document.getElementById('edit_client_id').value = inst.client_id;
+                    document.getElementById('edit_technician_id').value = inst.technician_id;
+                    document.getElementById('edit_address').value = inst.address;
+                    document.getElementById('edit_date').value = new Date(inst.scheduled_at).toISOString().slice(0, 16);
+                    document.getElementById('edit_status').value = inst.status;
+                    document.getElementById('edit_notes').value = inst.notes;
+                    editModal.show();
+                } else {
+                    alert('Erro ao carregar dados da instalação: ' + result.message);
+                }
+            } catch (error) {
+                alert('Ocorreu um erro de comunicação.');
+            }
+        }
+
+        async function updateInstallation() {
+            const form = document.getElementById('editInstallationForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(`/admin/api/installations/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    editModal.hide();
+                    loadInstallations();
+                    alert('Instalação atualizada com sucesso!');
+                } else {
+                    alert('Erro ao atualizar: ' + result.message);
+                }
+            } catch (error) {
+                alert('Ocorreu um erro de comunicação.');
+            }
+        }
+        
+        async function cancelInstallation(id) {
+            if (confirm('Tem certeza que deseja cancelar esta instalação?')) {
+                try {
+                    const response = await fetch(`/admin/api/installations/cancel/${id}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        loadInstallations();
+                        alert('Instalação cancelada com sucesso.');
+                    } else {
+                        alert('Erro ao cancelar: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Ocorreu um erro de comunicação.');
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>

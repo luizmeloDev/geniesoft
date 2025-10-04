@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Análise da Rede - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
+    <link href="/css/admin-mobile.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .metric-card {
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .metric-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .metric-card.success { background: linear-gradient(135deg, #28a745 0%, #218838 100%); }
+        .metric-card.info { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
+        .metric-card.warning { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); }
+        .metric-card.danger { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+        .chart-container { position: relative; height: 320px; margin-bottom: 2rem; }
+        .heatmap-container { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <%- include('../partials/admin-responsive-sidebar', { page: 'dashboard' }) %>
+
+            <main class="col-md-10 ms-sm-auto main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div>
+                        <h1 class="h2"><i class="bi bi-bar-chart-line-fill me-2"></i>Análise da Rede</h1>
+                        <p class="text-muted">Visão geral e insights sobre a saúde da sua infraestrutura.</p>
+                    </div>
+                    <div class="btn-toolbar">
+                        <button class="btn btn-outline-primary" onclick="refreshAnalytics()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+                    </div>
+                </div>
+
+                <!-- Métricas Chave -->
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6"><div class="metric-card success"><h5><i class="bi bi-broadcast me-2"></i>Total de ODPs</h5><h4 id="totalODPs">-</h4></div></div>
+                    <div class="col-lg-3 col-md-6"><div class="metric-card info"><h5><i class="bi bi-diagram-3-fill me-2"></i>Total de Cabos</h5><h4 id="totalCables">-</h4></div></div>
+                    <div class="col-lg-3 col-md-6"><div class="metric-card warning"><h5><i class="bi bi-reception-4 me-2"></i>Taxa de Utilização</h5><h4 id="utilizationRate">-%</h4></div></div>
+                    <div class="col-lg-3 col-md-6"><div class="metric-card danger"><h5><i class="bi bi-heart-pulse-fill me-2"></i>Saúde da Rede</h5><h4 id="healthScore">-%</h4></div></div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="row mb-4">
+                    <div class="col-lg-6"><div class="card"><div class="card-header"><h5><i class="bi bi-pie-chart-fill me-2"></i>Distribuição de Capacidade (ODP)</h5></div><div class="card-body"><div class="chart-container"><canvas id="odpCapacityChart"></canvas></div></div></div></div>
+                    <div class="col-lg-6"><div class="card"><div class="card-header"><h5><i class="bi bi-bar-chart-fill me-2"></i>Status dos Cabos</h5></div><div class="card-body"><div class="chart-container"><canvas id="cableStatusChart"></canvas></div></div></div></div>
+                </div>
+
+                <!-- Tendência e Alertas -->
+                 <div class="row mb-4">
+                    <div class="col-lg-8"><div class="card"><div class="card-header"><h5><i class="bi bi-graph-up-arrow me-2"></i>Tendência de Utilização da Rede</h5></div><div class="card-body"><div class="chart-container"><canvas id="utilizationTrendChart"></canvas></div></div></div></div>
+                    <div class="col-lg-4"><div class="card"><div class="card-header"><h5><i class="bi bi-exclamation-diamond-fill me-2"></i>Alertas e Recomendações</h5></div><div class="card-body" style="max-height: 385px; overflow-y: auto;" id="alertsList"><div class="text-center"><span class="spinner-border spinner-border-sm"></span> Carregando...</div></div></div></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+
+        document.addEventListener('DOMContentLoaded', loadAnalyticsData);
+
+        async function loadAnalyticsData() {
+            try {
+                const response = await fetch('/admin/cable-network/api/analytics');
+                const result = await response.json();
+                if (result.success) {
+                    updateUI(result.data);
+                } else {
+                    console.error('Falha ao carregar dados de análise:', result.message);
+                }
+            } catch (error) {
+                console.error('Erro de rede ao carregar dados:', error);
+            }
+        }
+
+        function updateUI(data) {
+            document.getElementById('totalODPs').textContent = data.odps.total || 0;
+            document.getElementById('totalCables').textContent = data.cables.total || 0;
+            document.getElementById('utilizationRate').textContent = `${(data.utilization || 0).toFixed(1)}%`;
+            document.getElementById('healthScore').textContent = `${(data.healthScore || 0).toFixed(1)}%`;
+            renderAlerts(data.alerts);
+            renderCharts(data);
+        }
+
+        function renderAlerts(alerts) {
+            const list = document.getElementById('alertsList');
+            list.innerHTML = '';
+            if (!alerts || alerts.length === 0) {
+                list.innerHTML = '<div class="text-center text-muted">Nenhum alerta no momento.</div>';
+                return;
+            }
+            alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${alert.type} d-flex align-items-center`;
+                alertDiv.innerHTML = `<i class="bi ${alert.icon} me-2"></i> <div><strong>${alert.title}</strong>: ${alert.message}</div>`;
+                list.appendChild(alertDiv);
+            });
+        }
+
+        function renderCharts(data) {
+            // Destruir gráficos existentes para evitar duplicação
+            Object.values(charts).forEach(chart => chart.destroy());
+
+            // Gráfico de Capacidade ODP
+            charts.odpCapacity = new Chart(document.getElementById('odpCapacityChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Saudável (<70%)', 'Atenção (70-90%)', 'Crítico (>90%)'],
+                    datasets: [{
+                        data: [data.odps.healthy || 0, data.odps.warning || 0, data.odps.critical || 0],
+                        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Gráfico de Status dos Cabos
+            charts.cableStatus = new Chart(document.getElementById('cableStatusChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Conectado', 'Desconectado', 'Manutenção', 'Danificado'],
+                    datasets: [{
+                        label: 'Contagem de Cabos',
+                        data: [data.cables.connected || 0, data.cables.disconnected || 0, data.cables.maintenance || 0, data.cables.damaged || 0],
+                        backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#6f42c1']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Gráfico de Tendência de Utilização
+            charts.utilizationTrend = new Chart(document.getElementById('utilizationTrendChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.utilizationTrend?.labels || [],
+                    datasets: [{
+                        label: 'Utilização %',
+                        data: data.utilizationTrend?.data || [],
+                        borderColor: '#17a2b8',
+                        tension: 0.3,
+                        fill: true,
+                        backgroundColor: 'rgba(23, 162, 184, 0.1)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+        }
+
+        function refreshAnalytics() {
+            document.getElementById('alertsList').innerHTML = '<div class="text-center"><span class="spinner-border spinner-border-sm"></span> Atualizando...</div>';
+            loadAnalyticsData();
+        }
+    </script>
+</body>
+</html>
