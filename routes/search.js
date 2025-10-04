@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../config/database'); // Garanta que o caminho para seu DB está correto
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database('./data/billing.db'); // Conexão direta com o banco de dados
 const { typesenseClient, isTypesenseEnabled } = require('../config/typesenseClient');
 const logger = require('../config/logger');
 
