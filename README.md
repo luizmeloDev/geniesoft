@@ -2,17 +2,16 @@
 
 O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que integra um gateway de pagamento via WhatsApp com o GenieACS para provisionamento, além de recursos para gestão de clientes, faturamento e suporte técnico. O sistema é compatível com Mikrotik (PPPoE e Hotspot).
 
-## Funcionalidades
+## Funcionalidades Principais
 
+- **Painel Administrativo 100% em Português:** Toda a interface de administração, incluindo configurações, faturamento, gerenciamento de clientes, planos e técnicos, foi completamente traduzida para o português, oferecendo uma experiência de usuário unificada e intuitiva.
 - **Dashboard de Análise de Rede:** A página inicial do admin é um centro de análise que exibe a saúde da rede, utilização de ODPs, status dos cabos e alertas em tempo real.
 - **Mapa da Rede Interativo com Busca:** Visualize toda a sua infraestrutura de rede, incluindo clientes, ONUs, ODPs e cabos. A nova barra de pesquisa permite localizar clientes instantaneamente por nome, CPF, telefone ou código.
 - **Gerenciamento de Instalações:** Uma seção completa para agendar, atribuir e acompanhar as instalações de novos clientes, com filtros por status, cliente e data.
-- **Gestão de Clientes:** Cadastro, edição e consulta de informações de clientes.
-- **Faturamento:** Geração e controle de faturas, com pagamentos online e baixa automática.
-- **Gateway WhatsApp:** Notificações, autoatendimento e pagamentos diretamente pelo WhatsApp.
-- **Integração GenieACS:** Provisionamento automático de equipamentos.
-- **Suporte a Mikrotik:** Gestão de usuários PPPoE e Hotspot.
-- **Painel Administrativo Aprimorado:** Interface para administradores, técnicos e atendentes, agora com um menu de navegação totalmente reorganizado, traduzido para o português e mais intuitivo.
+- **Gestão de Clientes e Faturamento:** Cadastro, edição e consulta de informações de clientes. Geração e controle de faturas, com pagamentos online e baixa automática.
+- **Ferramentas de Configuração de Rede:** A página de "Configurações" foi aprimorada com geradores de script para isolamento de clientes no Mikrotik, configuração de DNS para GenieACS, cálculo de redutor óptico e mais, agilizando tarefas técnicas complexas.
+- **Gateway WhatsApp:** Notificações, autoatendimento e pagamentos diretamente pelo WhatsApp, com gestão de grupos e status da conexão diretamente no painel.
+- **Integração GenieACS e Mikrotik:** Provisionamento automático de equipamentos e gestão de usuários PPPoE e Hotspot.
 - **Portal do Cliente:** Área para o cliente consultar faturas e informações.
 
 ## Como Usar
@@ -39,8 +38,10 @@ O Geniesoft ISP é um sistema de gestão de provedores de internet (ISP) que int
 
 ## Últimas Atualizações
 
-- **Correção no Script de Instalação:** O script `new-server-setup.js` foi reescrito para ser idempotente, permitindo que seja executado várias vezes sem causar erros de duplicação de dados.
-- **Correção no Formulário de Instalação:** Resolvido o bug que impedia a criação de novas instalações. O botão "Novo Cliente" agora funciona, exibindo os campos necessários, e a busca por clientes existentes foi implementada, garantindo que os dados do cliente sejam enviados corretamente.
+- **Tradução Completa:** Todo o painel administrativo foi traduzido para o português, incluindo as páginas de Clientes, Planos, Técnicos, Cobradores e Configurações do Sistema.
+- **Correção de Bugs Críticos:** Resolvido o erro que impedia a inicialização do servidor (módulo de busca) e o erro de referência que quebrava o painel de faturamento.
+- **Novas Ferramentas de Rede:** Adicionados geradores de script e calculadoras na página de configurações para facilitar a administração do Mikrotik e GenieACS.
+- **Melhorias Gerais de Usabilidade:** Ajustes finos na interface, como a correção de links no menu e a reescrita de seções para maior clareza.
 
 ## Instalação e Configuração (Brasil)
 
