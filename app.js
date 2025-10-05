@@ -1,1 +1,135 @@
-\nconst express = require(\'express\');\nconst path = require(\'path\');\nconst i18n = require(\'i18n\');\nconst logger = require(\'./config/logger\');\nconst session = require(\'express-session\');\nconst { getSetting } = require(\'./config/settingsManager\');\nconst { initializeSchema } = require(\'./config/typesenseManager\');\nconst { setActivePage } = require(\'./config/middleware\');\n\ni18n.configure({\n  locales: [\'en\', \'id\', \'pt\'],\n  directory: path.join(__dirname, \'locales\'),\n  defaultLocale: \'pt\',\n  cookie: \'i18n\',\n  autoReload: true,\n  objectNotation: true,\n});\n\nconst app = express();\n\ninitializeSchema();\n\napp.use(express.json({ limit: \'10mb\' }));\napp.use(express.urlencoded({ extended: true, limit: \'10mb\' }));\n\napp.use(\'/public\', express.static(path.join(__dirname, \'public\'), {\n  maxAge: \'1h\',\n  etag: true\n}));\n\napp.use(session({\n  secret: getSetting(\'session_secret\', \'a-very-secret-key\'),\n  resave: false,\n  saveUninitialized: false,\n  cookie: { \n    secure: process.env.NODE_ENV === \'production\',\n    maxAge: 24 * 60 * 60 * 1000,\n    httpOnly: true\n  },\n  name: \'admin_session\'\n}));\n\napp.use(i18n.init);\n\napp.set(\'view engine\', \'ejs\');\napp.set(\'views\', path.join(__dirname, \'views\'));\n\napp.use((req, res, next) => {\n    res.locals.user = req.session.admin;\n    res.locals.settings = getSetting();\n    next();\n});\n\napp.use(\'/admin\', setActivePage);\n\nconst { router: adminAuthRouter, adminAuth } = require(\'./routes/adminAuth\');\nconst { blockTechnicianAccess } = require(\'./middleware/technicianAccessControl\');\n\napp.use(\'/admin\', adminAuthRouter);\n\nconst adminRoutes = [\n    { path: \'/dashboard\', router: \'./routes/adminDashboard\' },\n    { path: \'/genieacs\', router: \'./routes/adminGenieacs\' },\n    { path: \'/mapping-new\', router: \'./routes/adminMappingNew\' },\n    { path: \'/mikrotik\', router: \'./routes/adminMikrotik\' },\n    { path: \'/hotspot\', router: \'./routes/adminHotspot\', subPath: true },\n    { path: \'/settings\', router: \'./routes/adminSetting\', auth: true, subPath: true, useBlock: true },\n    { path: \'/config\', router: \'./routes/configValidation\', useBlock: true },\n    { path: \'/trouble\', router: \'./routes/adminTroubleReport\', auth: true, useBlock: true },\n    { path: \'/billing\', router: \'./routes/adminBilling\', auth: true, useBlock: true },\n    { path: \'/installations\', router: \'./routes/adminInstallationJobs\', auth: true, useBlock: true },\n    { path: \'/technicians\', router: \'./routes/adminTechnicians\', auth: true, useBlock: true },\n    { path: \'/agents\', router: \'./routes/adminAgents\', auth: true, useBlock: true },\n    { path: \'/voucher-pricing\', router: \'./routes/adminVoucherPricing\', auth: true, useBlock: true },\n    { path: \'/cable-network\', router: \'./routes/adminCableNetwork\', auth: true, useBlock: true },\n    { path: \'/collectors\', router: \'./routes/adminCollectors\', useBlock: true },\n    { path: \'/cache\', router: \'./routes/cacheManagement\', useBlock: true }\n];\n\nadminRoutes.forEach(route => {\n    const router = require(route.router);\n    const args = [route.subPath ? route.path : \`/admin${route.path}\`];\n    if (route.useBlock) args.push(blockTechnicianAccess);\n    if (route.auth) args.push(adminAuth);\n    args.push(route.subPath ? router.router : router);\n    app.use.apply(app, args);\n});\n\nconst otherRoutes = [\n    { path: \'/agent\', router: \'./routes/agentAuth\', property: \'router\' },\n    { path: \'/agent\', router: \'./routes/agent\' },\n    { path: \'/payment\', router: \'./routes/payment\' },\n    { path: \'/test/trouble\', router: \'./routes/testTroubleReport\' },\n    { path: \'/customer/trouble\', router: \'./routes/troubleReport\' },\n    { path: \'/voucher\', router: \'./routes/publicVoucher\', property: \'router\' },\n    { path: \'/tools\', router: \'./routes/publicTools\' },\n    { path: \'/webhook/voucher\', router: \'./routes/publicVoucher\', property: \'router\' },\n    { path: \'/api\', router: \'./routes/apiDashboard\' },\n    { path: \'/api/search\', router: \'./routes/search\', auth: true },\n    { path: \'/\', router: \'./routes/staticIcons\' },\n    { path: \'/customer\', router: \'./routes/customerPortal\' },\n    { path: \'/customer/billing\', router: \'./routes/customerBilling\' },\n    { path: \'/technician\', router: \'./routes/technicianAuth\', property: \'router\' },\n    { path: \'/tecnico\', router: \'./routes/technicianAuth\', property: \'router\' },\n    { path: \'/technician\', router: \'./routes/technicianDashboard\' },\n    { path: \'/tecnico\', router: \'./routes/technicianDashboard\' },\n    { path: \'/technician\', router: \'./routes/technicianCableNetwork\' },\n    { path: \'/tecnico\', router: \'./routes/technicianCableNetwork\' },\n    { path: \'/collector\', router: \'./routes/collectorAuth\', property: \'router\' },\n    { path: \'/collector\', router: \'./routes/collectorDashboard\' }\n];\n\notherRoutes.forEach(route => {\n    let router = require(route.router);\n    if (route.property) router = router[route.property];\n    const args = [route.path];\n    if (route.auth) args.push(adminAuth);\n    args.push(router);\n    app.use.apply(app, args);\n});\n\napp.get(\'/\', (req, res) => {\n  res.redirect(\'/admin/login\');\n});\n\nconst PORT = getSetting(\'server_port\', 4555);\n\napp.listen(PORT, () => {\n    logger.info(`✅ Servidor iniciado na porta ${PORT}`);\n}).on(\'error\', (err) => {\n    logger.error(`❌ Erro ao iniciar o servidor: ${err.message}`);\n    process.exit(1);\n});\n\nmodule.exports = app;\n
+const express = require('express');
+const path = require('path');
+const i18n = require('i18n');
+const logger = require('./config/logger');
+const session = require('express-session');
+const { getSetting } = require('./config/settingsManager');
+const { initializeSchema } = require('./config/typesenseManager');
+const { setActivePage } = require('./config/middleware');
+
+i18n.configure({
+  locales: ['en', 'id', 'pt'],
+  directory: path.join(__dirname, 'locales'),
+  defaultLocale: 'pt',
+  cookie: 'i18n',
+  autoReload: true,
+  objectNotation: true,
+});
+
+const app = express();
+
+initializeSchema();
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+app.use('/public', express.static(path.join(__dirname, 'public'), {
+  maxAge: '1h',
+  etag: true
+}));
+
+app.use(session({
+  secret: getSetting('session_secret', 'a-very-secret-key'),
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true
+  },
+  name: 'admin_session'
+}));
+
+app.use(i18n.init);
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use((req, res, next) => {
+    res.locals.user = req.session.admin;
+    res.locals.settings = getSetting();
+    next();
+});
+
+app.use('/admin', setActivePage);
+
+const { router: adminAuthRouter, adminAuth } = require('./routes/adminAuth');
+const { blockTechnicianAccess } = require('./middleware/technicianAccessControl');
+
+app.use('/admin', adminAuthRouter);
+
+const adminRoutes = [
+    { path: '/dashboard', router: './routes/adminDashboard' },
+    { path: '/genieacs', router: './routes/adminGenieacs' },
+    { path: '/mapping-new', router: './routes/adminMappingNew' },
+    { path: '/mikrotik', router: './routes/adminMikrotik' },
+    { path: '/hotspot', router: './routes/adminHotspot', subPath: true },
+    { path: '/settings', router: './routes/adminSetting', auth: true, subPath: true, useBlock: true },
+    { path: '/config', router: './routes/configValidation', useBlock: true },
+    { path: '/trouble', router: './routes/adminTroubleReport', auth: true, useBlock: true },
+    { path: '/billing', router: './routes/adminBilling', auth: true, useBlock: true },
+    { path: '/installations', router: './routes/adminInstallationJobs', auth: true, useBlock: true },
+    { path: '/technicians', router: './routes/adminTechnicians', auth: true, useBlock: true },
+    { path: '/agents', router: './routes/adminAgents', auth: true, useBlock: true },
+    { path: '/voucher-pricing', router: './routes/adminVoucherPricing', auth: true, useBlock: true },
+    { path: '/cable-network', router: './routes/adminCableNetwork', auth: true, useBlock: true },
+    { path: '/collectors', router: './routes/adminCollectors', useBlock: true },
+    { path: '/cache', router: './routes/cacheManagement', useBlock: true }
+];
+
+adminRoutes.forEach(route => {
+    const router = require(route.router);
+    const args = [route.subPath ? route.path : `/admin${route.path}`];
+    if (route.useBlock) args.push(blockTechnicianAccess);
+    if (route.auth) args.push(adminAuth);
+    args.push(route.subPath ? router.router : router);
+    app.use.apply(app, args);
+});
+
+const otherRoutes = [
+    { path: '/agent', router: './routes/agentAuth', property: 'router' },
+    { path: '/agent', router: './routes/agent' },
+    { path: '/payment', router: './routes/payment' },
+    { path: '/test/trouble', router: './routes/testTroubleReport' },
+    { path: '/customer/trouble', router: './routes/troubleReport' },
+    { path: '/voucher', router: './routes/publicVoucher', property: 'router' },
+    { path: '/tools', router: './routes/publicTools' },
+    { path: '/webhook/voucher', router: './routes/publicVoucher', property: 'router' },
+    { path: '/api', router: './routes/apiDashboard' },
+    { path: '/api/search', router: './routes/search', auth: true },
+    { path: '/', router: './routes/staticIcons' },
+    { path: '/customer', router: './routes/customerPortal' },
+    { path: '/customer/billing', router: './routes/customerBilling' },
+    { path: '/technician', router: './routes/technicianAuth', property: 'router' },
+    { path: '/tecnico', router: './routes/technicianAuth', property: 'router' },
+    { path: '/technician', router: './routes/technicianDashboard' },
+    { path: '/tecnico', router: './routes/technicianDashboard' },
+    { path: '/technician', router: './routes/technicianCableNetwork' },
+    { path: '/tecnico', router: './routes/technicianCableNetwork' },
+    { path: '/collector', router: './routes/collectorAuth', property: 'router' },
+    { path: '/collector', router: './routes/collectorDashboard' }
+];
+
+otherRoutes.forEach(route => {
+    let router = require(route.router);
+    if (route.property) router = router[route.property];
+    const args = [route.path];
+    if (route.auth) args.push(adminAuth);
+    args.push(router);
+    app.use.apply(app, args);
+});
+
+app.get('/', (req, res) => {
+  res.redirect('/admin/login');
+});
+
+const PORT = getSetting('server_port', 4555);
+
+app.listen(PORT, () => {
+    logger.info(`✅ Servidor iniciado na porta ${PORT}`);
+}).on('error', (err) => {
+    logger.error(`❌ Erro ao iniciar o servidor: ${err.message}`);
+    process.exit(1);
+});
+
+module.exports = app;
