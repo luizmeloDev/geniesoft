@@ -253,7 +253,7 @@ router.get('/dashboard', getAppSettings, async (req, res) => {
         const stats = await billingManager.getBillingStats();
         const overdueInvoices = await billingManager.getOverdueInvoices();
         const recentInvoices = await billingManager.getInvoices();
-        res.render('admin/billing/dashboard', { title: 'Painel de Faturamento', stats, overdueInvoices: overdueInvoices.slice(0, 10), recentInvoices: recentInvoices.slice(0, 10), appSettings: req.appSettings });
+        res.render('admin/billing/dashboard', { title: 'Painel de Faturamento', stats, overdueInvoices: overdueInvoices.slice(0, 10), recentInvoices: recentInvoices.slice(0, 10), appSettings: req.appSettings, currentPage: 'dashboard' });
     } catch (error) {
         logger.error('Erro ao carregar o painel de faturamento:', error);
         res.status(500).render('error', { message: 'Falha ao carregar o painel de faturamento', error: error.message });
